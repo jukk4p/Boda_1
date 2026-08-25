@@ -152,9 +152,10 @@
   .nav-monogram {
     font-family: 'Cinzel', serif;
     color: var(--gold-light);
-    font-size: 1.5rem;
-    letter-spacing: 0.15em;
+    font-size: 1.1rem;
+    letter-spacing: 0.06em;
     text-align: center;
+    line-height: 1.4;
     margin-bottom: 2.5rem;
   }
   .nav-links { list-style: none; display: flex; flex-direction: column; gap: 1.2rem; }
@@ -596,6 +597,12 @@
 
   /* ── 6. CÓDIGO DE VESTIMENTA ──────────────────────── */
   .vestimenta-box { text-align: center; }
+  .vestimenta-box .img-frame {
+    max-width: 230px;
+    margin-left: auto;
+    margin-right: auto;
+    background: var(--bg-cream);
+  }
   .vestimenta-tag {
     display: inline-block;
     padding: 0.4rem 1.4rem;
@@ -813,7 +820,7 @@
 <div class="nav-overlay" id="nav-overlay">
   <nav class="nav-drawer">
     <button class="nav-close" onclick="toggleMenu()" aria-label="Cerrar">✕</button>
-    <p class="nav-monogram">Boda</p>
+    <p class="nav-monogram">Boda Gloria &amp; José</p>
     <ul class="nav-links">
       <li><a href="#inicio" onclick="toggleMenu()"><span class="dot"></span>Inicio</a></li>
       <li><a href="#cuenta-atras" onclick="toggleMenu()"><span class="dot"></span>Cuenta Atrás</a></li>
@@ -1094,7 +1101,7 @@
       <div class="vestimenta-tag">ELEGANTE</div>
 
       <div class="img-frame">
-        <img src="img/pro_dress_code.jpg" alt="Ilustración acuarela de vestido verde y esmoquin">
+        <img src="img/pro_dress_code.png" alt="Ilustración acuarela de vestido verde y esmoquin">
       </div>
 
       <p style="font-style:italic; font-size:1.05rem; color:var(--muted-text);">"Queremos veros deslumbrantes en nuestro gran día"</p>
@@ -1478,8 +1485,6 @@ END:VCALENDAR`;
 <!-- REPRODUCTOR DE MÚSICA DE FONDO -->
 <audio id="bg-music" loop preload="auto">
   <source src="img/Ed%20Sheeran%20-%20Perfect%20(Official%20Music%20Video).mp3" type="audio/mpeg">
-  <source src="img/musica.mp3" type="audio/mpeg">
-  <source src="musica.mp3" type="audio/mpeg">
 </audio>
 
 </body>
