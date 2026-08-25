@@ -45,8 +45,13 @@
   .app {
     max-width: 480px;
     margin: 0 auto;
-    background: var(--bg-cream);
+    background-color: var(--bg-cream);
+    background-image: url('img/leaf-border.png'), url('img/leaf-border-mirrored.png');
+    background-repeat: repeat-y, repeat-y;
+    background-position: left top, right top;
+    background-size: 60px auto, 60px auto;
     position: relative;
+    z-index: 1;
     box-shadow: 0 0 80px rgba(0,0,0,0.18);
     min-height: 100vh;
     padding-bottom: 2rem;
@@ -1171,10 +1176,13 @@
         <circle cx="62" cy="4" r="3.2" fill="currentColor" fill-opacity=".65"/>
         <circle cx="54" cy="13" r="2.2" fill="currentColor" fill-opacity=".5"/>
       </svg>
-      <p class="section-tag">Aviso Importante</p>
       <h3 style="font-family:'Cinzel',serif; color:var(--emerald); font-size:1.2rem; margin:0.4rem 0;">Solo Adultos</h3>
-      <p style="font-size:0.98rem; color:var(--muted-text); font-style:italic; max-width:340px; margin:0 auto;">
-        "Aunque adoramos a los más pequeños, en esta ocasión hemos decidido celebrar este día en un ambiente solo para adultos."
+      <div class="divider-gold"><span class="line"></span><span class="icon">♥</span><span class="line"></span></div>
+      <p style="font-size:0.98rem; color:var(--muted-text); max-width:340px; margin:0 auto 0.9rem;">
+        Aunque adoramos a los más pequeños, en esta ocasión hemos decidido celebrar este día en un ambiente solo para adultos.
+      </p>
+      <p style="font-size:0.98rem; color:var(--muted-text); max-width:340px; margin:0 auto;">
+        Esperamos que comprendáis nuestra decisión y que disfrutéis de una noche inolvidable con nosotros.
       </p>
     </div>
   </div>
