@@ -172,26 +172,37 @@
     z-index: 500;
     display: flex; align-items: center; justify-content: center;
     background:
-      radial-gradient(ellipse 90% 70% at 50% 20%, rgba(201,160,99,0.18) 0%, transparent 70%),
-      var(--bg-cream);
+      radial-gradient(ellipse 65% 50% at 50% 40%, rgba(201,160,99,0.28) 0%, transparent 68%),
+      radial-gradient(ellipse 120% 90% at 50% 105%, rgba(45,84,66,0.55) 0%, transparent 62%),
+      linear-gradient(160deg, #12281e 0%, #1a382b 55%, #0c1b14 100%);
     transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.15s, visibility 0.9s 0.15s;
     perspective: 1400px;
   }
   .gate.closed { opacity: 0; visibility: hidden; pointer-events: none; }
   .envelope-card {
     background: var(--bg-cream);
-    border: 1px solid var(--border-gold);
+    border: 1px solid var(--gold);
     border-radius: 24px;
     padding: 2.8rem 2rem 2.6rem;
     text-align: center;
     max-width: 360px; width: 90%;
-    box-shadow: 0 24px 60px rgba(26, 56, 43, 0.16);
+    box-shadow:
+      0 35px 80px rgba(0,0,0,0.5),
+      0 10px 28px rgba(0,0,0,0.3),
+      inset 0 0 0 1px rgba(201,160,99,0.3);
     position: relative;
     overflow: hidden;
     transform-style: preserve-3d;
     transform: rotateX(0) rotateY(0) scale(1) translateZ(0);
     transition: transform 0.85s cubic-bezier(0.55, 0, 0.1, 1);
     will-change: transform;
+  }
+  .envelope-card::before {
+    content: '';
+    position: absolute; inset: 9px;
+    border: 1px solid rgba(201,160,99,0.4);
+    border-radius: 17px;
+    pointer-events: none;
   }
   .gate.closed .envelope-card {
     transform: rotateX(18deg) rotateY(-28deg) scale(0.62) translateZ(-260px);
@@ -206,23 +217,45 @@
     margin-bottom: 1.4rem;
   }
   .wax-seal {
-    width: 88px; height: 88px;
-    background: radial-gradient(circle, #d4a96b 0%, #9e753b 100%);
+    width: 92px; height: 92px;
+    position: relative;
+    background: radial-gradient(circle at 35% 28%, #f2ddb0 0%, #d4a96b 45%, #9e753b 100%);
     border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
     margin: 0 auto 1.5rem;
-    box-shadow: 0 8px 24px rgba(158, 117, 59, 0.35), inset 0 2px 4px rgba(255,255,255,0.4);
+    box-shadow:
+      0 12px 28px rgba(158, 117, 59, 0.4),
+      inset 0 2px 5px rgba(255,255,255,0.55),
+      inset 0 -4px 8px rgba(0,0,0,0.22);
     border: 2px solid #e2c290;
     animation: sealFloat 4s ease-in-out infinite;
+    overflow: hidden;
+  }
+  .wax-seal::before {
+    content: '';
+    position: absolute; inset: -8px;
+    border-radius: 50%;
+    border: 1px solid rgba(201,160,99,0.45);
+  }
+  .wax-seal::after {
+    content: '';
+    position: absolute; inset: 0;
+    border-radius: 50%;
+    background: linear-gradient(115deg, transparent 35%, rgba(255,255,255,0.65) 50%, transparent 65%);
+    background-size: 260% 260%;
+    background-position: -140% -140%;
+    animation: sealShine 5.5s ease-in-out infinite;
   }
   @keyframes sealFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
-  .wax-seal span { font-family: 'Cinzel', serif; font-size: 1.5rem; font-weight: 600; color: #1a382b; }
-  
+  @keyframes sealShine { 0%, 55% { background-position: -140% -140%; } 75%, 100% { background-position: 140% 140%; } }
+  .wax-seal span { position: relative; z-index: 1; font-family: 'Cinzel', serif; font-size: 1.5rem; font-weight: 600; color: #1a382b; }
+
   .gate-names {
     font-family: 'Cinzel', serif;
-    font-size: 1.8rem;
-    color: var(--emerald);
+    font-size: 2rem;
     letter-spacing: 0.05em;
+    background: linear-gradient(120deg, #9e773b 0%, #e2c290 35%, #c9a063 55%, #e2c290 75%, #9e773b 100%);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: var(--emerald);
   }
   .gate-sub {
     font-family: 'Montserrat', sans-serif;
@@ -230,7 +263,7 @@
     letter-spacing: 0.15em;
     color: var(--muted-text);
     text-transform: uppercase;
-    margin: 0.5rem 0 2rem;
+    margin: 0.5rem 0 0;
   }
   .btn-gold {
     display: inline-flex; align-items: center; justify-content: center; gap: 0.6rem;
@@ -248,8 +281,49 @@
     cursor: pointer;
     box-shadow: 0 10px 24px rgba(26, 56, 43, 0.22);
     transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
   }
+  .btn-gold::after {
+    content: '';
+    position: absolute; top: 0; left: -60%;
+    width: 35%; height: 100%;
+    background: linear-gradient(115deg, transparent, rgba(255,255,255,0.4), transparent);
+    transform: skewX(-20deg);
+    animation: btnShine 3.4s ease-in-out infinite;
+  }
+  @keyframes btnShine { 0%, 45% { left: -60%; } 65%, 100% { left: 130%; } }
   .btn-gold:hover { transform: translateY(-2px); box-shadow: 0 14px 30px rgba(26, 56, 43, 0.32); color: #ffffff; }
+  .btn-gold.is-disabled {
+    background: linear-gradient(135deg, #8f8a7c 0%, #726d61 100%);
+    color: #f1ede3;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+  .btn-gold.is-disabled::after { display: none; }
+  .btn-gold.is-disabled:hover { transform: none; box-shadow: none; color: #f1ede3; }
+
+  .qr-wrap { position: relative; }
+  .qr-lock-overlay {
+    position: absolute; inset: 0;
+    display: none;
+    flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem;
+    background: rgba(251, 249, 244, 0.94);
+    backdrop-filter: blur(2px);
+    border-radius: 17px;
+    color: var(--gold-dark);
+    text-align: center;
+  }
+  .qr-wrap.is-locked .qr-lock-overlay { display: flex; }
+  .qr-lock-overlay span {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--emerald);
+    line-height: 1.5;
+  }
 
   /* ── SECCIONES Y TARJETAS EN CASO ─────────────────── */
   .section-wrap { padding: 1.2rem 1.4rem; }
@@ -283,6 +357,51 @@
     font-weight: 500;
     letter-spacing: 0.04em;
   }
+  .section-icon { color: var(--gold-dark); display: flex; justify-content: center; margin: 0.3rem 0; }
+
+  .hourglass {
+    position: relative; width: 34px; height: 34px;
+    margin: 0.3rem auto; color: var(--gold-dark);
+  }
+  .hourglass svg { position: absolute; inset: 0; }
+  .hg-sand {
+    position: absolute; left: 50%; width: 11px; margin-left: -5.5px;
+    background: var(--gold);
+    animation-duration: 4.2s; animation-iteration-count: infinite; animation-timing-function: ease-in-out;
+  }
+  .hg-sand-top {
+    top: 9px; height: 9px;
+    clip-path: polygon(10% 0, 90% 0, 50% 100%);
+    transform-origin: top center;
+    animation-name: hgDrain;
+  }
+  .hg-sand-bottom {
+    bottom: 9px; height: 9px;
+    clip-path: polygon(50% 0, 10% 100%, 90% 100%);
+    transform-origin: bottom center;
+    animation-name: hgFill;
+  }
+  @keyframes hgDrain {
+    0% { transform: scaleY(1); opacity: 1; }
+    68% { transform: scaleY(0); opacity: 1; }
+    84% { transform: scaleY(0); opacity: 1; }
+    92% { opacity: 0; }
+    93% { transform: scaleY(1); opacity: 0; }
+    100% { transform: scaleY(1); opacity: 1; }
+  }
+  @keyframes hgFill {
+    0% { transform: scaleY(0); opacity: 1; }
+    68% { transform: scaleY(1); opacity: 1; }
+    84% { transform: scaleY(1); opacity: 1; }
+    92% { opacity: 0; }
+    93% { transform: scaleY(0); opacity: 0; }
+    100% { transform: scaleY(0); opacity: 1; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hg-sand { animation: none !important; }
+    .hg-sand-top { transform: scaleY(.4); }
+    .hg-sand-bottom { transform: scaleY(.6); }
+  }
   .divider-gold {
     display: flex; align-items: center; justify-content: center; gap: 0.6rem;
     margin: 0.6rem auto 0; max-width: 140px;
@@ -298,13 +417,14 @@
       radial-gradient(circle at 50% 0%, rgba(201,160,99,0.12) 0%, transparent 60%),
       var(--card-bg);
   }
-  .monogram-emblem {
-    font-family: 'Cinzel', serif;
-    font-size: 2.8rem;
+  .hero-kicker {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.34em;
     color: var(--gold-dark);
-    margin-bottom: 1rem;
-    display: inline-block;
-    line-height: 1;
+    text-transform: uppercase;
+    margin-bottom: 1.2rem;
   }
   .hero-names {
     font-family: 'Cinzel', serif;
@@ -374,6 +494,35 @@
     margin: 1.2rem 0;
     box-shadow: 0 8px 20px rgba(0,0,0,0.08);
   }
+  .venue-carousel {
+    display: flex;
+    gap: 0.8rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    margin: 1.2rem 0 0.6rem;
+    scrollbar-width: none;
+  }
+  .venue-carousel::-webkit-scrollbar { display: none; }
+  .venue-slide {
+    flex: 0 0 100%;
+    scroll-snap-align: center;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    cursor: pointer;
+  }
+  .venue-slide img { width: 100%; height: auto; display: block; }
+  .venue-dots {
+    display: flex; justify-content: center; align-items: center;
+    gap: 0.5rem; margin-bottom: 0.4rem;
+  }
+  .venue-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--border-gold); opacity: .45;
+    transition: opacity .25s ease, transform .25s ease, background .25s ease;
+  }
+  .venue-dot.active { opacity: 1; transform: scale(1.4); background: var(--emerald); }
   .img-frame img { width: 100%; height: auto; display: block; }
   
   .details-list {
@@ -492,6 +641,17 @@
     border-color: rgba(37, 211, 102, 0.5);
     background: var(--bg-cream);
   }
+  .btn-whatsapp:active { transform: translateY(-1px) scale(0.98); }
+  .btn-whatsapp::after {
+    content: '';
+    position: absolute; top: 0; left: -60%;
+    width: 30%; height: 100%;
+    background: linear-gradient(115deg, transparent, rgba(255,255,255,0.55), transparent);
+    transform: skewX(-20deg);
+    pointer-events: none;
+  }
+  .btn-whatsapp:hover::after { animation: waShine 1.1s ease; }
+  @keyframes waShine { from { left: -60%; } to { left: 130%; } }
   .wa-icon-badge {
     width: 46px; height: 46px;
     border-radius: 50%;
@@ -499,7 +659,7 @@
     color: #ffffff;
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
-    box-shadow: 0 4px 14px rgba(37, 211, 102, 0.35);
+    box-shadow: 0 4px 14px rgba(37, 211, 102, 0.35), 0 0 0 3px var(--bg-cream), 0 0 0 4px rgba(201,160,99,0.4);
     transition: transform 0.3s ease;
   }
   .btn-whatsapp:hover .wa-icon-badge { transform: scale(1.08) rotate(-5deg); }
@@ -588,7 +748,7 @@
   .js .reveal.visible { opacity: 1; transform: translateY(0); }
 
   @media (prefers-reduced-motion: reduce) {
-    .reveal, .wax-seal, .music-badge .note, .petal, .app { animation: none !important; transition: none !important; opacity: 1 !important; transform: none !important; }
+    .reveal, .wax-seal, .wax-seal::after, .btn-gold::after, .music-badge .note, .petal, .app { animation: none !important; transition: none !important; opacity: 1 !important; transform: none !important; }
   }
 </style>
 </head>
@@ -627,6 +787,7 @@
     </div>
     <p class="gate-names">Gloria & José</p>
     <p class="gate-sub">Nos casamos • 31 de Julio de 2027</p>
+    <div class="divider-gold" style="margin-bottom:1.6rem"><span class="line"></span><span class="icon">♦</span><span class="line"></span></div>
     <button class="btn-gold" id="open-btn" onclick="openInvitation()">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg> Abrir Invitación
     </button>
@@ -647,7 +808,7 @@
 <div class="nav-overlay" id="nav-overlay">
   <nav class="nav-drawer">
     <button class="nav-close" onclick="toggleMenu()" aria-label="Cerrar">✕</button>
-    <p class="nav-monogram">G & J</p>
+    <p class="nav-monogram">Boda</p>
     <ul class="nav-links">
       <li><a href="#inicio" onclick="toggleMenu()"><span class="dot"></span>Inicio</a></li>
       <li><a href="#cuenta-atras" onclick="toggleMenu()"><span class="dot"></span>Cuenta Atrás</a></li>
@@ -703,7 +864,7 @@
         <circle cx="62" cy="4" r="3.2" fill="currentColor" fill-opacity=".65"/>
         <circle cx="54" cy="13" r="2.2" fill="currentColor" fill-opacity=".5"/>
       </svg>
-      <div class="monogram-emblem">G&amp;J</div>
+      <p class="hero-kicker">Nuestra Boda</p>
       <h1 class="hero-names">Gloria <span class="hero-amp">&amp;</span> José</h1>
       <p class="hero-date">31 • Julio • 2027 • Sevilla</p>
       <p class="hero-quote">"El mejor capítulo de nuestra historia está a punto de comenzar... y nos haría muchísima ilusión compartirlo contigo."</p>
@@ -725,7 +886,11 @@
       </svg>
       <div class="section-header">
         <p class="section-tag">Faltan Para Nuestro Gran Día</p>
-        <h2 class="section-title">Cuenta Atrás</h2>
+        <div class="hourglass" aria-hidden="true">
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M6 3h12M6 21h12M7 3c0 5 4 6.5 5 8 1-1.5 5-3 5-8M7 21c0-5 4-6.5 5-8 1 1.5 5 3 5 8"/></svg>
+          <span class="hg-sand hg-sand-top"></span>
+          <span class="hg-sand hg-sand-bottom"></span>
+        </div>
         <div class="divider-gold"><span class="line"></span><span class="icon">♥</span><span class="line"></span></div>
       </div>
       <div class="countdown-grid">
@@ -772,14 +937,23 @@
           <div class="detail-text">20:30 H</div>
         </div>
         <div class="detail-item">
-          <div class="detail-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M4 21V10l8-6 8 6v11"/><path d="M9 21v-7h6v7"/></svg></div>
+          <div class="detail-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M4 21V10.5l8-6.5 8 6.5V21H4z"/><path d="M9.5 21v-6.5h5V21"/></svg></div>
           <div class="detail-title">Lugar</div>
           <div class="detail-text">Hacienda El Triunfo</div>
         </div>
       </div>
 
-      <div class="img-frame">
-        <img src="img/pro_hacienda.png" alt="Acuarela Hacienda El Triunfo, Espartinas, Sevilla">
+      <div class="venue-carousel" id="venue-carousel">
+        <div class="venue-slide" onclick="openLightbox('img/hacienda-1.jpg')">
+          <img src="img/hacienda-1.jpg" alt="Hacienda El Triunfo, Espartinas, Sevilla">
+        </div>
+        <div class="venue-slide" onclick="openLightbox('img/hacienda-3.webp')">
+          <img src="img/hacienda-3.webp" alt="Piscina y jardines de Hacienda El Triunfo">
+        </div>
+      </div>
+      <div class="venue-dots" id="venue-dots">
+        <span class="venue-dot active"></span>
+        <span class="venue-dot"></span>
       </div>
 
       <div style="text-align:center; margin-top:1.2rem;">
@@ -860,11 +1034,11 @@
 
       <div class="timeline-grid">
         <div class="timeline-card">
-          <div class="timeline-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 20s-7-4.4-9.3-8.8C1.2 8 2.3 4 6 4c2 0 4 1.4 6 4 2-2.6 4-4 6-4 3.7 0 4.8 4 3.3 7.2C19 15.6 12 20 12 20z"/></svg></div>
+          <div class="timeline-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 21s7-7.5 7-12a7 7 0 10-14 0c0 4.5 7 12 7 12z"/><circle cx="12" cy="9" r="2.4"/></svg></div>
           <div class="timeline-label">Nos Conocimos</div>
         </div>
         <div class="timeline-card">
-          <div class="timeline-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="14" r="6"/><path d="M9 8l3-5 3 5"/></svg></div>
+          <div class="timeline-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 20s-7-4.4-9.3-8.8C1.2 8 2.3 4 6 4c2 0 4 1.4 6 4 2-2.6 4-4 6-4 3.7 0 4.8 4 3.3 7.2C19 15.6 12 20 12 20z"/></svg></div>
           <div class="timeline-label">Nos Enamoramos</div>
         </div>
         <div class="timeline-card">
@@ -940,18 +1114,22 @@
         <div class="divider-gold"><span class="line"></span><span class="icon">♦</span><span class="line"></span></div>
       </div>
       <p style="font-size:1.05rem; color:var(--body-text); margin-bottom:1.2rem;">
-        Queremos revivir este día único a través de vuestros ojos. Escanea el código o pulsa el botón para subir tus recuerdos.
+        Queremos revivir este día único a través de vuestros ojos. El día de la boda, escanea el código o pulsa el botón para subir tus fotos y vídeos al momento.
       </p>
 
-      <div style="background:var(--bg-cream); padding:1.2rem; border-radius:18px; border:1px solid var(--border-gold); display:inline-block; margin-bottom:1.2rem; box-shadow:0 4px 12px rgba(0,0,0,0.05)">
+      <div class="qr-wrap" id="qr-wrap" style="background:var(--bg-cream); padding:1.2rem; border-radius:18px; border:1px solid var(--border-gold); display:inline-block; margin-bottom:1.2rem; box-shadow:0 4px 12px rgba(0,0,0,0.05)">
         <svg width="140" height="140" viewBox="0 0 100 100" fill="#1a382b">
           <path d="M0 0h35v35H0zM5 5v25h25V5zm5 5h15v15H10zM65 0h35v35H65zM70 5v25h25V5zm5 5h15v15H75zM0 65h35v35H0zM5 70v25h25V70zm5 5h15v15H10zM40 5h15v15H40zM40 25h10v10H40zM45 40h20v10H45zM25 45h15v15H25zM65 45h15v15H65zM85 45h15v20H85zM45 65h10v20H45zM60 65h20v10H60zM75 80h20v20H75zM55 85h15v15H55z"/>
         </svg>
+        <div class="qr-lock-overlay" id="qr-lock-overlay">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+          <span>Disponible el<br>31 de Julio de 2027</span>
+        </div>
       </div>
 
       <div>
-        <button class="btn-gold" onclick="alert('Formulario de carga de fotos activado para los invitados.')">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.2"/></svg> Subir Fotos y Vídeos
+        <button class="btn-gold" id="upload-btn" onclick="handleUploadClick()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.2"/></svg> <span id="upload-btn-label">Subir Fotos y Vídeos</span>
         </button>
       </div>
     </div>
@@ -1014,7 +1192,7 @@
         <circle cx="54" cy="13" r="2.2" fill="currentColor" fill-opacity=".5"/>
       </svg>
       <div class="section-header">
-        <p class="section-tag">RSVP</p>
+        <p class="section-tag">Vía WhatsApp</p>
         <h2 class="section-title">Confirma Tu Asistencia</h2>
         <div class="divider-gold"><span class="line"></span><span class="icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></span><span class="line"></span></div>
       </div>
@@ -1058,7 +1236,7 @@
         "La vida está hecha de momentos... y este será uno de los más importantes de la nuestra. Gracias por acompañarnos."
       </p>
       <p style="font-family:'Alex Brush',cursive; font-size:3.2rem; color:var(--gold-dark); margin:0.5rem 0;">
-        Gloria &amp; José
+        Gloria <span style="font-family:'Cinzel',serif; font-weight:500; font-size:0.7em; vertical-align:0.08em; margin:0 0.06em; color:var(--gold-dark);">&amp;</span> José
       </p>
       <div class="divider-gold"><span class="line"></span><span class="icon">♥</span><span class="line"></span></div>
       <p style="font-family:'Montserrat',sans-serif; font-size:0.65rem; letter-spacing:0.2em; color:var(--gold-dark); text-transform:uppercase; margin-top:1.5rem;">
@@ -1230,6 +1408,43 @@ END:VCALENDAR`;
   function openLightbox(src) {
     document.getElementById('lightbox-img').src = src;
     openModal('lightbox-modal');
+  }
+
+  // ── CARRUSEL DE FOTOS DEL LUGAR ────────────────────
+  (function () {
+    const carousel = document.getElementById('venue-carousel');
+    const dots = document.querySelectorAll('#venue-dots .venue-dot');
+    if (!carousel || !dots.length) return;
+    carousel.addEventListener('scroll', () => {
+      const idx = Math.round(carousel.scrollLeft / carousel.clientWidth);
+      dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+    }, { passive: true });
+    dots.forEach((d, i) => {
+      d.style.cursor = 'pointer';
+      d.addEventListener('click', () => {
+        carousel.scrollTo({ left: i * carousel.clientWidth, behavior: 'smooth' });
+      });
+    });
+  })();
+
+  // ── SUBIDA DE FOTOS: bloqueada hasta el día de la boda ──
+  const uploadActive = Date.now() >= new Date('2027-07-31T00:00:00').getTime();
+  (function () {
+    const qrWrap = document.getElementById('qr-wrap');
+    const btn = document.getElementById('upload-btn');
+    const btnLabel = document.getElementById('upload-btn-label');
+    if (!uploadActive) {
+      if (qrWrap) qrWrap.classList.add('is-locked');
+      if (btn) btn.classList.add('is-disabled');
+      if (btnLabel) btnLabel.textContent = 'Disponible el día de la boda';
+    }
+  })();
+  function handleUploadClick() {
+    if (!uploadActive) {
+      alert('¡Esta sección se activará el día de la boda (31 de julio de 2027)! Guardad vuestras fotos y compartidlas con nosotros ese día. 💍');
+      return;
+    }
+    alert('Formulario de carga de fotos activado para los invitados.');
   }
 
   // ── AUDIO / MÚSICA AMBIENTAL ───────────────────────
