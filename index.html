@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Invitación Oficial de Boda: Gloria & José · 31 de Julio de 2027 en Hacienda El Triunfo, Sevilla.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%231a382b'/%3E%3Ctext x='32' y='41' font-family='Cinzel,serif' font-size='22' fill='%23c9a063' text-anchor='middle'%3EG%26J%3C/text%3E%3C/svg%3E">
+<title>Gloria & José • Invitación Editorial 2027</title>
+<script>document.documentElement.classList.add('js');</script>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Montserrat:wght@300;400;500;600&family=Alex+Brush&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --emerald:      #1a382b;
+    --emerald-dark: #12281e;
+    --emerald-soft: #2d5442;
+    --gold:         #c9a063;
+    --gold-light:   #e2c290;
+    --gold-dark:    #9e773b;
+    --bg-cream:     #fbf9f4;
+    --card-bg:      #fbf9f4;
+    --muted-bg:     #f4efe6;
+    --dark-text:    #231f1a;
+    --body-text:    #4a443c;
+    --muted-text:   #7a7267;
+    --border-gold:  rgba(201, 160, 99, 0.35);
+    --shadow-soft:  0 12px 32px rgba(26, 56, 43, 0.08);
+    --shadow-hover: 0 20px 48px rgba(26, 56, 43, 0.15);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  html, body { max-width: 100%; overflow-x: hidden; }
+
+  body {
+    font-family: 'Cormorant Garamond', serif;
+    background: #ebe6da;
+    color: var(--dark-text);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection { background: var(--gold-light); color: var(--emerald-dark); }
+
+  /* ── MAIN APP CONTAINER ───────────────────────────── */
+  .app {
+    max-width: 480px;
+    margin: 0 auto;
+    background: var(--bg-cream);
+    position: relative;
+    box-shadow: 0 0 80px rgba(0,0,0,0.18);
+    min-height: 100vh;
+    padding-bottom: 2rem;
+  }
+
+  /* ── PROGRESS BAR ─────────────────────────────────── */
+  .progress-bar {
+    position: fixed; top: 0; left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--gold), var(--emerald-soft), var(--gold));
+    z-index: 300;
+    width: 0%;
+    transition: width .15s ease-out;
+  }
+
+  /* ── TOP FLOATING CONTROL BAR (Sin líneas de borde inferior) ═ */
+  .topbar {
+    position: fixed;
+    top: 6px; left: 50%;
+    transform: translateX(-50%);
+    width: 100%; max-width: 480px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0.8rem 1.2rem;
+    z-index: 200;
+    pointer-events: none;
+  }
+  .music-badge {
+    pointer-events: auto;
+    display: flex; align-items: center; gap: 0.5rem;
+    background: rgba(251, 249, 244, 0.92);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border-gold);
+    border-radius: 50px;
+    padding: 0.45rem 1rem 0.45rem 0.75rem;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    color: var(--emerald-dark);
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+    transition: all 0.25s ease;
+  }
+  .music-badge:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(26, 56, 43, 0.12); }
+  .music-badge .note { color: var(--gold-dark); font-size: 0.95rem; }
+  .music-badge.playing .note { animation: musicPulse 1.4s infinite ease-in-out; }
+  @keyframes musicPulse { 0%,100% { transform: scale(1); opacity: .7; } 50% { transform: scale(1.2); opacity: 1; } }
+
+  .menu-btn {
+    pointer-events: auto;
+    width: 40px; height: 40px;
+    background: var(--emerald);
+    border: 1px solid var(--gold);
+    border-radius: 50%;
+    color: var(--gold-light);
+    font-size: 1.1rem;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(26, 56, 43, 0.25);
+    transition: transform 0.3s ease, background 0.3s ease;
+  }
+  .menu-btn:hover { background: var(--emerald-dark); transform: rotate(90deg); }
+
+  /* ── NAVIGATION DRAWER ────────────────────────────── */
+  .nav-overlay {
+    position: fixed; inset: 0;
+    background: rgba(18, 40, 30, 0.65);
+    backdrop-filter: blur(4px);
+    z-index: 400;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.4s ease;
+  }
+  .nav-overlay.open { opacity: 1; pointer-events: auto; }
+  .nav-drawer {
+    position: fixed; top: 0; right: 0; bottom: 0;
+    width: min(80vw, 320px);
+    background: var(--emerald-dark);
+    z-index: 401;
+    padding: 2.5rem 1.8rem;
+    transform: translateX(100%);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex; flex-direction: column;
+    border-left: 1px solid var(--gold-dark);
+  }
+  .nav-overlay.open .nav-drawer { transform: translateX(0); }
+  .nav-close {
+    align-self: flex-end;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 1px solid rgba(201, 160, 99, 0.4);
+    background: transparent;
+    color: var(--gold-light);
+    font-size: 1rem;
+    cursor: pointer;
+    margin-bottom: 2rem;
+  }
+  .nav-monogram {
+    font-family: 'Cinzel', serif;
+    color: var(--gold-light);
+    font-size: 1.5rem;
+    letter-spacing: 0.15em;
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+  .nav-links { list-style: none; display: flex; flex-direction: column; gap: 1.2rem; }
+  .nav-links a {
+    display: flex; align-items: center; gap: 0.8rem;
+    color: #e5e0d5;
+    text-decoration: none;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.76rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    transition: color 0.25s ease, padding-left 0.25s ease;
+  }
+  .nav-links a:hover { color: var(--gold-light); padding-left: 0.4rem; }
+  .nav-links a .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--gold); }
+
+  /* ── GATE / SOBRE DIGITAL DE APERTURA ─────────────── */
+  .gate {
+    position: fixed; inset: 0;
+    z-index: 500;
+    display: flex; align-items: center; justify-content: center;
+    background:
+      radial-gradient(ellipse 90% 70% at 50% 20%, rgba(201,160,99,0.18) 0%, transparent 70%),
+      var(--bg-cream);
+    transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.15s, visibility 0.9s 0.15s;
+    perspective: 1400px;
+  }
+  .gate.closed { opacity: 0; visibility: hidden; pointer-events: none; }
+  .envelope-card {
+    background: var(--bg-cream);
+    border: 1px solid var(--border-gold);
+    border-radius: 24px;
+    padding: 2.8rem 2rem 2.6rem;
+    text-align: center;
+    max-width: 360px; width: 90%;
+    box-shadow: 0 24px 60px rgba(26, 56, 43, 0.16);
+    position: relative;
+    overflow: hidden;
+    transform-style: preserve-3d;
+    transform: rotateX(0) rotateY(0) scale(1) translateZ(0);
+    transition: transform 0.85s cubic-bezier(0.55, 0, 0.1, 1);
+    will-change: transform;
+  }
+  .gate.closed .envelope-card {
+    transform: rotateX(18deg) rotateY(-28deg) scale(0.62) translateZ(-260px);
+  }
+  .gate-kicker {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.64rem;
+    font-weight: 600;
+    letter-spacing: 0.28em;
+    color: var(--gold-dark);
+    text-transform: uppercase;
+    margin-bottom: 1.4rem;
+  }
+  .wax-seal {
+    width: 88px; height: 88px;
+    background: radial-gradient(circle, #d4a96b 0%, #9e753b 100%);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1.5rem;
+    box-shadow: 0 8px 24px rgba(158, 117, 59, 0.35), inset 0 2px 4px rgba(255,255,255,0.4);
+    border: 2px solid #e2c290;
+    animation: sealFloat 4s ease-in-out infinite;
+  }
+  @keyframes sealFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+  .wax-seal span { font-family: 'Cinzel', serif; font-size: 1.5rem; font-weight: 600; color: #1a382b; }
+  
+  .gate-names {
+    font-family: 'Cinzel', serif;
+    font-size: 1.8rem;
+    color: var(--emerald);
+    letter-spacing: 0.05em;
+  }
+  .gate-sub {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.72rem;
+    letter-spacing: 0.15em;
+    color: var(--muted-text);
+    text-transform: uppercase;
+    margin: 0.5rem 0 2rem;
+  }
+  .btn-gold {
+    display: inline-flex; align-items: center; justify-content: center; gap: 0.6rem;
+    padding: 0.95rem 2.2rem;
+    background: linear-gradient(135deg, var(--emerald) 0%, var(--emerald-dark) 100%);
+    color: var(--gold-light);
+    border: 1px solid var(--gold);
+    border-radius: 50px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.74rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    text-decoration: none;
+    cursor: pointer;
+    box-shadow: 0 10px 24px rgba(26, 56, 43, 0.22);
+    transition: all 0.3s ease;
+  }
+  .btn-gold:hover { transform: translateY(-2px); box-shadow: 0 14px 30px rgba(26, 56, 43, 0.32); color: #ffffff; }
+
+  /* ── SECCIONES Y TARJETAS EN CASO ─────────────────── */
+  .section-wrap { padding: 1.2rem 1.4rem; }
+  .card-premium {
+    background: var(--card-bg);
+    border-radius: 24px;
+    padding: 2.2rem 1.6rem;
+    border: 1px solid rgba(201, 160, 99, 0.25);
+    box-shadow: var(--shadow-soft);
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.35s ease, box-shadow 0.35s ease;
+  }
+  .card-premium:hover { transform: translateY(-2px); box-shadow: var(--shadow-hover); }
+
+  /* Encabezados de sección */
+  .section-header { text-align: center; margin-bottom: 1.6rem; }
+  .section-tag {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.64rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    color: var(--gold-dark);
+    text-transform: uppercase;
+    margin-bottom: 0.3rem;
+  }
+  .section-title {
+    font-family: 'Cinzel', serif;
+    font-size: 1.65rem;
+    color: var(--emerald);
+    font-weight: 500;
+    letter-spacing: 0.04em;
+  }
+  .divider-gold {
+    display: flex; align-items: center; justify-content: center; gap: 0.6rem;
+    margin: 0.6rem auto 0; max-width: 140px;
+  }
+  .divider-gold .line { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--gold), transparent); }
+  .divider-gold .icon { color: var(--gold); font-size: 0.75rem; }
+
+  /* ── 1. HERO SECTION ──────────────────────────────── */
+  .hero-card {
+    text-align: center;
+    padding: 3.5rem 1.6rem 2.8rem;
+    background:
+      radial-gradient(circle at 50% 0%, rgba(201,160,99,0.12) 0%, transparent 60%),
+      var(--card-bg);
+  }
+  .monogram-emblem {
+    font-family: 'Cinzel', serif;
+    font-size: 2.8rem;
+    color: var(--gold-dark);
+    margin-bottom: 1rem;
+    display: inline-block;
+    line-height: 1;
+  }
+  .hero-names {
+    font-family: 'Cinzel', serif;
+    font-size: 2.2rem;
+    font-weight: 600;
+    color: var(--emerald);
+    line-height: 1.15;
+    letter-spacing: 0.03em;
+  }
+  .hero-amp { font-family: 'Cinzel', serif; font-weight: 500; color: var(--gold); font-size: 0.85em; vertical-align: middle; margin: 0 0.1em; }
+  .hero-date {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    color: var(--gold-dark);
+    margin: 1rem 0 1.5rem;
+    text-transform: uppercase;
+  }
+  .hero-quote {
+    font-style: italic;
+    font-size: 1.15rem;
+    color: var(--body-text);
+    max-width: 320px;
+    margin: 0 auto;
+    line-height: 1.5;
+  }
+
+  /* ── 2. CUENTA ATRÁS ──────────────────────────────── */
+  .countdown-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.6rem;
+    margin: 1.4rem 0 1.6rem;
+  }
+  .cd-box {
+    background: var(--muted-bg);
+    border: 1px solid var(--border-gold);
+    border-radius: 16px;
+    padding: 0.85rem 0.3rem;
+    text-align: center;
+  }
+  .cd-val {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.1rem;
+    font-weight: 600;
+    color: var(--emerald);
+    line-height: 1;
+  }
+  .cd-lbl {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.56rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    color: var(--gold-dark);
+    text-transform: uppercase;
+    margin-top: 0.3rem;
+  }
+
+  /* ── 3. EL GRAN DÍA (LUGAR) ───────────────────────── */
+  .img-frame {
+    border-radius: 16px;
+    overflow: hidden;
+    margin: 1.2rem 0;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  }
+  .img-frame img { width: 100%; height: auto; display: block; }
+  
+  .details-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.8rem;
+    margin: 1.4rem 0;
+    text-align: center;
+  }
+  .detail-item { padding: 0.6rem 0.2rem; }
+  .detail-icon { font-size: 1.4rem; color: var(--gold); margin-bottom: 0.3rem; }
+  .detail-title { font-family: 'Montserrat', sans-serif; font-size: 0.62rem; font-weight: 600; letter-spacing: 0.1em; color: var(--gold-dark); text-transform: uppercase; }
+  .detail-text { font-family: 'Cinzel', serif; font-size: 0.85rem; color: var(--emerald-dark); font-weight: 600; margin-top: 0.2rem; }
+
+  /* ── 4. HORARIOS ──────────────────────────────────── */
+  .schedule-list { display: flex; flex-direction: column; gap: 1.2rem; margin-top: 1rem; }
+  .schedule-row {
+    display: flex; align-items: center; gap: 1.2rem;
+    padding: 0.9rem 1.1rem;
+    background: var(--muted-bg);
+    border-radius: 16px;
+    border-left: 3px solid var(--gold);
+  }
+  .schedule-time {
+    font-family: 'Cinzel', serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--emerald);
+    min-width: 65px;
+  }
+  .schedule-info .event-title { font-family: 'Cinzel', serif; font-size: 0.95rem; font-weight: 600; color: var(--dark-text); }
+  .schedule-info .event-desc { font-size: 0.85rem; color: var(--muted-text); font-style: italic; }
+
+  /* ── 5. NUESTRA HISTORIA & GALERÍA ────────────────── */
+  .timeline-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin: 1.4rem 0 2rem;
+  }
+  .timeline-card {
+    background: var(--muted-bg);
+    border: 1px solid var(--border-gold);
+    border-radius: 16px;
+    padding: 1.2rem 0.8rem;
+    text-align: center;
+  }
+  .timeline-icon { font-size: 1.6rem; color: var(--gold-dark); margin-bottom: 0.4rem; }
+  .timeline-label { font-family: 'Cinzel', serif; font-size: 0.82rem; font-weight: 600; color: var(--emerald); }
+
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.8rem;
+  }
+  .gallery-item {
+    border-radius: 14px;
+    overflow: hidden;
+    aspect-ratio: 3/4;
+    cursor: pointer;
+    position: relative;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+  }
+  .gallery-item img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
+  .gallery-item:hover img { transform: scale(1.06); }
+
+  /* ── 6. CÓDIGO DE VESTIMENTA ──────────────────────── */
+  .vestimenta-box { text-align: center; }
+  .vestimenta-tag {
+    display: inline-block;
+    padding: 0.4rem 1.4rem;
+    background: var(--emerald);
+    color: var(--gold-light);
+    font-family: 'Cinzel', serif;
+    font-size: 0.9rem;
+    letter-spacing: 0.1em;
+    border-radius: 50px;
+    margin: 0.8rem 0 1.2rem;
+  }
+
+  /* ── 7. RSVP / CONFIRMAR ASISTENCIA ───────────────── */
+  .rsvp-buttons {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.1rem;
+    margin-top: 1.6rem;
+  }
+  .btn-whatsapp {
+    display: flex;
+    align-items: center;
+    gap: 1.1rem;
+    padding: 1.1rem 1.4rem;
+    background: linear-gradient(135deg, var(--bg-cream) 0%, var(--muted-bg) 100%);
+    border: 1px solid var(--border-gold);
+    border-radius: 20px;
+    text-decoration: none;
+    color: var(--dark-text);
+    box-shadow: 0 6px 20px rgba(26, 56, 43, 0.06);
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-whatsapp::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    width: 4px;
+    background: linear-gradient(180deg, #25D366 0%, #128C7E 100%);
+    border-radius: 4px 0 0 4px;
+    transition: width 0.3s ease;
+  }
+  .btn-whatsapp:hover::before { width: 6px; }
+  .btn-whatsapp:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 36px rgba(37, 211, 102, 0.2);
+    border-color: rgba(37, 211, 102, 0.5);
+    background: var(--bg-cream);
+  }
+  .wa-icon-badge {
+    width: 46px; height: 46px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+    color: #ffffff;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 4px 14px rgba(37, 211, 102, 0.35);
+    transition: transform 0.3s ease;
+  }
+  .btn-whatsapp:hover .wa-icon-badge { transform: scale(1.08) rotate(-5deg); }
+  .wa-content { display: flex; flex-direction: column; text-align: left; }
+  .wa-title { font-family: 'Cinzel', serif; font-size: 0.98rem; font-weight: 600; color: var(--emerald-dark); letter-spacing: 0.04em; }
+  .wa-sub { font-family: 'Cormorant Garamond', serif; font-size: 0.88rem; font-style: italic; color: var(--muted-text); margin-top: 0.1rem; }
+  .wa-arrow { margin-left: auto; color: var(--gold-dark); font-size: 1.1rem; transition: transform 0.3s ease, color 0.3s ease; }
+  .btn-whatsapp:hover .wa-arrow { transform: translateX(4px); color: #25D366; }
+
+  /* ── MODALS & POPUPS ──────────────────────────────── */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(18, 40, 30, 0.7);
+    backdrop-filter: blur(5px);
+    z-index: 600;
+    display: flex; align-items: center; justify-content: center;
+    padding: 1.5rem;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.35s ease;
+  }
+  .modal-overlay.active { opacity: 1; pointer-events: auto; }
+  .modal-card {
+    background: var(--bg-cream);
+    border-radius: 24px;
+    padding: 2.2rem 1.8rem;
+    max-width: 400px; width: 100%;
+    text-align: center;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.25);
+    position: relative;
+    transform: translateY(20px);
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .modal-overlay.active .modal-card { transform: translateY(0); }
+  .modal-close {
+    position: absolute; top: 1.2rem; right: 1.2rem;
+    background: transparent; border: none; font-size: 1.2rem; color: var(--muted-text); cursor: pointer;
+  }
+  .iban-code {
+    font-family: monospace;
+    font-size: 1.1rem;
+    background: var(--muted-bg);
+    padding: 0.8rem;
+    border-radius: 12px;
+    border: 1px dashed var(--gold);
+    margin: 1.2rem 0;
+    color: var(--emerald-dark);
+    word-break: break-all;
+  }
+
+  /* ── TOQUES FLORALES DE FONDO (vector, sin imágenes) ── */
+  .floral {
+    position: absolute;
+    width: 118px; height: auto;
+    color: var(--gold);
+    opacity: 0.4;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .floral.tl { top: -8px; left: -10px; }
+  .floral.tr { top: -8px; right: -10px; transform: scaleX(-1); }
+  .floral.bl { bottom: -8px; left: -10px; transform: scaleY(-1); }
+  .floral.br { bottom: -8px; right: -10px; transform: scale(-1, -1); }
+  .app > .floral { width: 150px; opacity: 0.3; }
+  .envelope-card .floral { width: 96px; opacity: 0.45; color: var(--gold-dark); }
+  .card-premium .floral { width: 92px; opacity: 0.28; }
+
+  /* ── PETALS FLOATING ──────────────────────────────── */
+  .petals { position: fixed; inset: 0; pointer-events: none; z-index: 5; overflow: hidden; max-width: 480px; margin: 0 auto; }
+  .petal {
+    position: absolute; top: -5%;
+    width: 8px; height: 11px;
+    background: radial-gradient(ellipse at 30% 30%, #f7e1e1, #d9b5a3 70%);
+    border-radius: 70% 20% 70% 20%;
+    opacity: 0;
+    animation: petalFall linear infinite;
+  }
+  @keyframes petalFall {
+    0%   { transform: translateY(-8vh) translateX(0) rotate(0deg); opacity: 0; }
+    10%  { opacity: 0.6; }
+    90%  { opacity: 0.4; }
+    100% { transform: translateY(112vh) translateX(var(--drift,40px)) rotate(360deg); opacity: 0; }
+  }
+
+  /* ── REVEAL ON SCROLL ─────────────────────────────── */
+  .js .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.8s ease, transform 0.8s ease; }
+  .js .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reveal, .wax-seal, .music-badge .note, .petal, .app { animation: none !important; transition: none !important; opacity: 1 !important; transform: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══ PANTALLA SOBRE DIGITAL DE APERTURA ════════════ -->
+<div class="gate" id="gate">
+  <div class="envelope-card">
+    <svg class="floral tl" viewBox="-15 0 100 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M15 175 C 25 140, 20 105, 38 72 C 52 48, 48 22, 62 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+      <path d="M38 72 C 48 64, 62 62, 70 50" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+      <ellipse cx="74" cy="47" rx="11" ry="5.5" transform="rotate(-32 74 47)" fill="currentColor" fill-opacity=".5"/>
+      <path d="M28 112 C 38 104, 52 102, 60 90" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+      <ellipse cx="64" cy="87" rx="10" ry="5" transform="rotate(-28 64 87)" fill="currentColor" fill-opacity=".45"/>
+      <path d="M22 145 C 12 140, 2 142, -4 133" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+      <ellipse cx="-6" cy="131" rx="10" ry="5" transform="rotate(24 -6 131)" fill="currentColor" fill-opacity=".45"/>
+      <circle cx="62" cy="4" r="3.2" fill="currentColor" fill-opacity=".65"/>
+      <circle cx="54" cy="13" r="2.2" fill="currentColor" fill-opacity=".5"/>
+      <circle cx="70" cy="12" r="2" fill="currentColor" fill-opacity=".4"/>
+    </svg>
+    <svg class="floral br" viewBox="-15 0 100 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M15 175 C 25 140, 20 105, 38 72 C 52 48, 48 22, 62 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+      <path d="M38 72 C 48 64, 62 62, 70 50" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+      <ellipse cx="74" cy="47" rx="11" ry="5.5" transform="rotate(-32 74 47)" fill="currentColor" fill-opacity=".5"/>
+      <path d="M28 112 C 38 104, 52 102, 60 90" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+      <ellipse cx="64" cy="87" rx="10" ry="5" transform="rotate(-28 64 87)" fill="currentColor" fill-opacity=".45"/>
+      <path d="M22 145 C 12 140, 2 142, -4 133" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+      <ellipse cx="-6" cy="131" rx="10" ry="5" transform="rotate(24 -6 131)" fill="currentColor" fill-opacity=".45"/>
+      <circle cx="62" cy="4" r="3.2" fill="currentColor" fill-opacity=".65"/>
+      <circle cx="54" cy="13" r="2.2" fill="currentColor" fill-opacity=".5"/>
+      <circle cx="70" cy="12" r="2" fill="currentColor" fill-opacity=".4"/>
+    </svg>
+    <p class="gate-kicker">Bienvenidos a nuestra boda</p>
+    <div class="wax-seal">
+      <span>G&J</span>
+    </div>
+    <p class="gate-names">Gloria & José</p>
+    <p class="gate-sub">Nos casamos • 31 de Julio de 2027</p>
+    <button class="btn-gold" id="open-btn" onclick="openInvitation()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg> Abrir Invitación
+    </button>
+  </div>
+</div>
+
+<div class="progress-bar" id="progress"></div>
+
+<!-- ══ BARRA SUPERIOR DE CONTROL ═════════════════════ -->
+<div class="topbar">
+  <button class="music-badge playing" id="music-badge" onclick="toggleMusic()">
+    <span class="note">♪</span> <span id="music-label">Música</span>
+  </button>
+  <button class="menu-btn" id="menu-btn" onclick="toggleMenu()" aria-label="Menú">☰</button>
+</div>
+
+<!-- ══ MENÚ DESLIZABLE ═══════════════════════════════ -->
+<div class="nav-overlay" id="nav-overlay">
+  <nav class="nav-drawer">
+    <button class="nav-close" onclick="toggleMenu()" aria-label="Cerrar">✕</button>
+    <p class="nav-monogram">G & J</p>
+    <ul class="nav-links">
+      <li><a href="#inicio" onclick="toggleMenu()"><span class="dot"></span>Inicio</a></li>
+      <li><a href="#cuenta-atras" onclick="toggleMenu()"><span class="dot"></span>Cuenta Atrás</a></li>
+      <li><a href="#gran-dia" onclick="toggleMenu()"><span class="dot"></span>El Gran Día</a></li>
+      <li><a href="#horarios" onclick="toggleMenu()"><span class="dot"></span>Horarios</a></li>
+      <li><a href="#historia" onclick="toggleMenu()"><span class="dot"></span>Nuestra Historia</a></li>
+      <li><a href="#vestimenta" onclick="toggleMenu()"><span class="dot"></span>Vestimenta</a></li>
+      <li><a href="#recuerdos" onclick="toggleMenu()"><span class="dot"></span>Recuerdos</a></li>
+      <li><a href="#lista" onclick="toggleMenu()"><span class="dot"></span>Regalos</a></li>
+      <li><a href="#confirmar" onclick="toggleMenu()"><span class="dot"></span>Confirmar Asistencia</a></li>
+    </ul>
+  </nav>
+</div>
+
+<div class="petals" id="petals"></div>
+
+<div class="app">
+
+  <svg class="floral tl" viewBox="-15 0 100 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M15 175 C 25 140, 20 105, 38 72 C 52 48, 48 22, 62 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+    <path d="M38 72 C 48 64, 62 62, 70 50" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+    <ellipse cx="74" cy="47" rx="11" ry="5.5" transform="rotate(-32 74 47)" fill="currentColor" fill-opacity=".5"/>
+    <path d="M28 112 C 38 104, 52 102, 60 90" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+    <ellipse cx="64" cy="87" rx="10" ry="5" transform="rotate(-28 64 87)" fill="currentColor" fill-opacity=".45"/>
+    <path d="M22 145 C 12 140, 2 142, -4 133" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+    <ellipse cx="-6" cy="131" rx="10" ry="5" transform="rotate(24 -6 131)" fill="currentColor" fill-opacity=".45"/>
+    <circle cx="62" cy="4" r="3.2" fill="currentColor" fill-opacity=".65"/>
+    <circle cx="54" cy="13" r="2.2" fill="currentColor" fill-opacity=".5"/>
+    <circle cx="70" cy="12" r="2" fill="currentColor" fill-opacity=".4"/>
+  </svg>
+  <svg class="floral tr" viewBox="-15 0 100 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M15 175 C 25 140, 20 105, 38 72 C 52 48, 48 22, 62 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+    <path d="M38 72 C 48 64, 62 62, 70 50" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+    <ellipse cx="74" cy="47" rx="11" ry="5.5" transform="rotate(-32 74 47)" fill="currentColor" fill-opacity=".5"/>
+    <path d="M28 112 C 38 104, 52 102, 60 90" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+    <ellipse cx="64" cy="87" rx="10" ry="5" transform="rotate(-28 64 87)" fill="currentColor" fill-opacity=".45"/>
+    <path d="M22 145 C 12 140, 2 142, -4 133" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+    <ellipse cx="-6" cy="131" rx="10" ry="5" transform="rotate(24 -6 131)" fill="currentColor" fill-opacity=".45"/>
+    <circle cx="62" cy="4" r="3.2" fill="currentColor" fill-opacity=".65"/>
+    <circle cx="54" cy="13" r="2.2" fill="currentColor" fill-opacity=".5"/>
+    <circle cx="70" cy="12" r="2" fill="currentColor" fill-opacity=".4"/>
+  </svg>
+
+  <!-- 1. HERO COVER -->
+  <div class="section-wrap" id="inicio" style="padding-top:1.2rem">
+    <div class="card-premium hero-card">
+      <svg class="floral tl" viewBox="-15 0 100 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M15 175 C 25 140, 20 105, 38 72 C 52 48, 48 22, 62 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+        <path d="M38 72 C 48 64, 62 62, 70 50" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+        <ellipse cx="74" cy="47" rx="11" ry="5.5" transform="rotate(-32 74 47)" fill="currentColor" fill-opacity=".5"/>
+        <path d="M28 112 C 38 104, 52 102, 60 90" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+        <ellipse cx="64" cy="87" rx="10" ry="5" transform="rotate(-28 64 87)" fill="currentColor" fill-opacity=".45"/>
+        <circle cx="62" cy="4" r="3.2" fill="currentColor" fill-opacity=".65"/>
+        <circle cx="54" cy="13" r="2.2" fill="currentColor" fill-opacity=".5"/>
+      </svg>
+      <div class="monogram-emblem">G&amp;J</div>
+      <h1 class="hero-names">Gloria <span class="hero-amp">&amp;</span> José</h1>
+      <p class="hero-date">31 • Julio • 2027 • Sevilla</p>
+      <p class="hero-quote">"El mejor capítulo de nuestra historia está a punto de comenzar... y nos haría muchísima ilusión compartirlo contigo."</p>
+      <div class="divider-gold" style="margin-top:1.8rem"><span class="line"></span><span class="icon">♦</span><span class="line"></span></div>
+    </div>
+  </div>
+
+  <!-- 2. CUENTA ATRÁS -->
+  <div class="section-wrap reveal" id="cuenta-atras">
+    <div class="card-premium">
+      <svg class="floral br" viewBox="-15 0 100 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M15 175 C 25 140, 20 105, 38 72 C 52 48, 48 22, 62 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+        <path d="M38 72 C 48 64, 62 62, 70 50" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+        <ellipse cx="74" cy="47" rx="11" ry="5.5" transform="rotate(-32 74 47)" fill="currentColor" fill-opacity=".5"/>
+        <path d="M28 112 C 38 104, 52 102, 60 90" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+        <ellipse cx="64" cy="87" rx="10" ry="5" transform="rotate(-28 64 87)" fill="currentColor" fill-opacity=".45"/>
+        <circle cx="62" cy="4" r="3.2" fill="currentColor" fill-opacity=".65"/>
+        <circle cx="54" cy="13" r="2.2" fill="currentColor" fill-opacity=".5"/>
+      </svg>
+      <div class="section-header">
+        <p class="section-tag">Faltan Para Nuestro Gran Día</p>
+        <h2 class="section-title">Cuenta Atrás</h2>
+        <div class="divider-gold"><span class="line"></span><span class="icon">♥</span><span class="line"></span></div>
+      </div>
+      <div class="countdown-grid">
+        <div class="cd-box"><span class="cd-val" id="cd-days">0</span><span class="cd-lbl">Días</span></div>
+        <div class="cd-box"><span class="cd-val" id="cd-hours">0</span><span class="cd-lbl">Horas</span></div>
+        <div class="cd-box"><span class="cd-val" id="cd-mins">0</span><span class="cd-lbl">Minutos</span></div>
+        <div class="cd-box"><span class="cd-val" id="cd-secs">0</span><span class="cd-lbl">Segundos</span></div>
+      </div>
+      <div style="text-align:center; margin-top:1rem;">
+        <button class="btn-gold" onclick="downloadICS()" style="font-size:0.66rem; padding:0.75rem 1.6rem;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg> Añadir a mi Calendario
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. EL GRAN DÍA -->
+  <div class="section-wrap reveal" id="gran-dia">
+    <div class="card-premium">
+      <svg class="floral tl" viewBox="-15 0 100 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M15 175 C 25 140, 20 105, 38 72 C 52 48, 48 22, 62 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+        <path d="M38 72 C 48 64, 62 62, 70 50" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+        <ellipse cx="74" cy="47" rx="11" ry="5.5" transform="rotate(-32 74 47)" fill="currentColor" fill-opacity=".5"/>
+        <path d="M28 112 C 38 104, 52 102, 60 90" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+        <ellipse cx="64" cy="87" rx="10" ry="5" transform="rotate(-28 64 87)" fill="currentColor" fill-opacity=".45"/>
+        <circle cx="62" cy="4" r="3.2" fill="currentColor" fill-opacity=".65"/>
+        <circle cx="54" cy="13" r="2.2" fill="currentColor" fill-opacity=".5"/>
+      </svg>
+      <div class="section-header">
+        <p class="section-tag">Lugar &amp; Fecha</p>
+        <h2 class="section-title">El Gran Día</h2>
+        <div class="divider-gold"><span class="line"></span><span class="icon">♦</span><span class="line"></span></div>
+      </div>
+
+      <div class="details-list">
+        <div class="detail-item">
+          <div class="detail-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></div>
+          <div class="detail-title">Fecha</div>
+          <div class="detail-text">31 Julio 2027</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg></div>
+          <div class="detail-title">Hora</div>
+          <div class="detail-text">20:30 H</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M4 21V10l8-6 8 6v11"/><path d="M9 21v-7h6v7"/></svg></div>
+          <div class="detail-title">Lugar</div>
+          <div class="detail-text">Hacienda El Triunfo</div>
+        </div>
+      </div>
+
+      <div class="img-frame">
+        <img src="img/pro_hacienda.png" alt="Acuarela Hacienda El Triunfo, Espartinas, Sevilla">
+      </div>
+
+      <div style="text-align:center; margin-top:1.2rem;">
+        <a class="btn-gold" href="https://maps.google.com/?q=Hacienda+El+Triunfo+Espartinas+Sevilla" target="_blank">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 00-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 00-7-7zm0 9.5A2.5 2.5 0 1112 6.5a2.5 2.5 0 010 5z"/></svg> Cómo Llegar • Ver en Mapa
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. HORARIOS -->
+  <div class="section-wrap reveal" id="horarios">
+    <div class="card-premium">
+      <svg class="floral tr" viewBox="-15 0 100 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M15 175 C 25 140, 20 105, 38 72 C 52 48, 48 22, 62 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+        <path d="M38 72 C 48 64, 62 62, 70 50" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+        <ellipse cx="74" cy="47" rx="11" ry="5.5" transform="rotate(-32 74 47)" fill="currentColor" fill-opacity=".5"/>
+        <path d="M28 112 C 38 104, 52 102, 60 90" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+        <ellipse cx="64" cy="87" rx="10" ry="5" transform="rotate(-28 64 87)" fill="currentColor" fill-opacity=".45"/>
+        <circle cx="62" cy="4" r="3.2" fill="currentColor" fill-opacity=".65"/>
+        <circle cx="54" cy="13" r="2.2" fill="currentColor" fill-opacity=".5"/>
+      </svg>
+      <div class="section-header">
+        <p class="section-tag">Cronograma</p>
+        <h2 class="section-title">Horarios</h2>
+        <div class="divider-gold"><span class="line"></span><span class="icon">♦</span><span class="line"></span></div>
+      </div>
+      <div class="schedule-list">
+        <div class="schedule-row">
+          <div class="schedule-time">20:30 h</div>
+          <div class="schedule-info">
+            <div class="event-title">Ceremonia</div>
+            <div class="event-desc">Llegada de invitados y celebración</div>
+          </div>
+        </div>
+        <div class="schedule-row">
+          <div class="schedule-time">21:30 h</div>
+          <div class="schedule-info">
+            <div class="event-title">Cóctel de Bienvenida</div>
+            <div class="event-desc">Aperitivos en los jardines</div>
+          </div>
+        </div>
+        <div class="schedule-row">
+          <div class="schedule-time">22:30 h</div>
+          <div class="schedule-info">
+            <div class="event-title">Cena</div>
+            <div class="event-desc">Banquete al aire libre</div>
+          </div>
+        </div>
+        <div class="schedule-row">
+          <div class="schedule-time">00:00 h</div>
+          <div class="schedule-info">
+            <div class="event-title">¡Empieza la Fiesta!</div>
+            <div class="event-desc">Baile, música y barra libre</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. NUESTRA HISTORIA Y GALERÍA -->
+  <div class="section-wrap reveal" id="historia">
+    <div class="card-premium">
+      <svg class="floral bl" viewBox="-15 0 100 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M15 175 C 25 140, 20 105, 38 72 C 52 48, 48 22, 62 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+        <path d="M38 72 C 48 64, 62 62, 70 50" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+        <ellipse cx="74" cy="47" rx="11" ry="5.5" transform="rotate(-32 74 47)" fill="currentColor" fill-opacity=".5"/>
+        <path d="M28 112 C 38 104, 52 102, 60 90" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+        <ellipse cx="64" cy="87" rx="10" ry="5" transform="rotate(-28 64 87)" fill="currentColor" fill-opacity=".45"/>
+        <circle cx="62" cy="4" r="3.2" fill="currentColor" fill-opacity=".65"/>
+        <circle cx="54" cy="13" r="2.2" fill="currentColor" fill-opacity=".5"/>
+      </svg>
+      <div class="section-header">
+        <p class="section-tag">Los Hitos de Nuestro Camino</p>
+        <h2 class="section-title">Nuestra Historia</h2>
+        <div class="divider-gold"><span class="line"></span><span class="icon">♥</span><span class="line"></span></div>
+      </div>
+
+      <div class="timeline-grid">
+        <div class="timeline-card">
+          <div class="timeline-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 20s-7-4.4-9.3-8.8C1.2 8 2.3 4 6 4c2 0 4 1.4 6 4 2-2.6 4-4 6-4 3.7 0 4.8 4 3.3 7.2C19 15.6 12 20 12 20z"/></svg></div>
+          <div class="timeline-label">Nos Conocimos</div>
+        </div>
+        <div class="timeline-card">
+          <div class="timeline-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="14" r="6"/><path d="M9 8l3-5 3 5"/></svg></div>
+          <div class="timeline-label">Nos Enamoramos</div>
+        </div>
+        <div class="timeline-card">
+          <div class="timeline-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M4 11l8-7 8 7"/><path d="M6 10v9h12v-9"/><path d="M10 19v-5h4v5"/></svg></div>
+          <div class="timeline-label">Construimos Hogar</div>
+        </div>
+        <div class="timeline-card">
+          <div class="timeline-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="9" cy="13" r="5.2"/><circle cx="15" cy="13" r="5.2"/></svg></div>
+          <div class="timeline-label">¡Nos Casamos!</div>
+        </div>
+      </div>
+
+      <div class="gallery-grid">
+        <div class="gallery-item" onclick="openLightbox('img/pro_photo_1.jpg')">
+          <img src="img/pro_photo_1.jpg" alt="Ramo de novia">
+        </div>
+        <div class="gallery-item" onclick="openLightbox('img/pro_photo_2.jpg')">
+          <img src="img/pro_photo_2.jpg" alt="Pareja al atardecer">
+        </div>
+        <div class="gallery-item" onclick="openLightbox('img/pro_photo_3.jpg')">
+          <img src="img/pro_photo_3.jpg" alt="Alianzas de boda">
+        </div>
+        <div class="gallery-item" onclick="openLightbox('img/pro_photo_4.jpg')">
+          <img src="img/pro_photo_4.jpg" alt="Mesa de banquete">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. CÓDIGO DE VESTIMENTA -->
+  <div class="section-wrap reveal" id="vestimenta">
+    <div class="card-premium vestimenta-box">
+      <svg class="floral tr" viewBox="-15 0 100 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M15 175 C 25 140, 20 105, 38 72 C 52 48, 48 22, 62 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+        <path d="M38 72 C 48 64, 62 62, 70 50" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+        <ellipse cx="74" cy="47" rx="11" ry="5.5" transform="rotate(-32 74 47)" fill="currentColor" fill-opacity=".5"/>
+        <path d="M28 112 C 38 104, 52 102, 60 90" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+        <ellipse cx="64" cy="87" rx="10" ry="5" transform="rotate(-28 64 87)" fill="currentColor" fill-opacity=".45"/>
+        <circle cx="62" cy="4" r="3.2" fill="currentColor" fill-opacity=".65"/>
+        <circle cx="54" cy="13" r="2.2" fill="currentColor" fill-opacity=".5"/>
+      </svg>
+      <div class="section-header">
+        <p class="section-tag">Dress Code</p>
+        <h2 class="section-title">Código de Vestimenta</h2>
+        <div class="divider-gold"><span class="line"></span><span class="icon">♦</span><span class="line"></span></div>
+      </div>
+
+      <div class="vestimenta-tag">ELEGANTE</div>
+
+      <div class="img-frame">
+        <img src="img/pro_dress_code.jpg" alt="Ilustración acuarela de vestido verde y esmoquin">
+      </div>
+
+      <p style="font-style:italic; font-size:1.05rem; color:var(--muted-text);">"Queremos veros deslumbrantes en nuestro gran día"</p>
+    </div>
+  </div>
+
+  <!-- 7. RECUERDOS & QR -->
+  <div class="section-wrap reveal" id="recuerdos">
+    <div class="card-premium" style="text-align:center;">
+      <svg class="floral tl" viewBox="-15 0 100 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M15 175 C 25 140, 20 105, 38 72 C 52 48, 48 22, 62 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+        <path d="M38 72 C 48 64, 62 62, 70 50" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+        <ellipse cx="74" cy="47" rx="11" ry="5.5" transform="rotate(-32 74 47)" fill="currentColor" fill-opacity=".5"/>
+        <path d="M28 112 C 38 104, 52 102, 60 90" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+        <ellipse cx="64" cy="87" rx="10" ry="5" transform="rotate(-28 64 87)" fill="currentColor" fill-opacity=".45"/>
+        <circle cx="62" cy="4" r="3.2" fill="currentColor" fill-opacity=".65"/>
+        <circle cx="54" cy="13" r="2.2" fill="currentColor" fill-opacity=".5"/>
+      </svg>
+      <div class="section-header">
+        <p class="section-tag">Tus Fotos &amp; Vídeos</p>
+        <h2 class="section-title">Comparte tus Recuerdos</h2>
+        <div class="divider-gold"><span class="line"></span><span class="icon">♦</span><span class="line"></span></div>
+      </div>
+      <p style="font-size:1.05rem; color:var(--body-text); margin-bottom:1.2rem;">
+        Queremos revivir este día único a través de vuestros ojos. Escanea el código o pulsa el botón para subir tus recuerdos.
+      </p>
+
+      <div style="background:var(--bg-cream); padding:1.2rem; border-radius:18px; border:1px solid var(--border-gold); display:inline-block; margin-bottom:1.2rem; box-shadow:0 4px 12px rgba(0,0,0,0.05)">
+        <svg width="140" height="140" viewBox="0 0 100 100" fill="#1a382b">
+          <path d="M0 0h35v35H0zM5 5v25h25V5zm5 5h15v15H10zM65 0h35v35H65zM70 5v25h25V5zm5 5h15v15H75zM0 65h35v35H0zM5 70v25h25V70zm5 5h15v15H10zM40 5h15v15H40zM40 25h10v10H40zM45 40h20v10H45zM25 45h15v15H25zM65 45h15v15H65zM85 45h15v20H85zM45 65h10v20H45zM60 65h20v10H60zM75 80h20v20H75zM55 85h15v15H55z"/>
+        </svg>
+      </div>
+
+      <div>
+        <button class="btn-gold" onclick="alert('Formulario de carga de fotos activado para los invitados.')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.2"/></svg> Subir Fotos y Vídeos
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. LISTA DE BODAS / REGALOS -->
+  <div class="section-wrap reveal" id="lista">
+    <div class="card-premium" style="text-align:center;">
+      <svg class="floral br" viewBox="-15 0 100 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M15 175 C 25 140, 20 105, 38 72 C 52 48, 48 22, 62 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+        <path d="M38 72 C 48 64, 62 62, 70 50" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+        <ellipse cx="74" cy="47" rx="11" ry="5.5" transform="rotate(-32 74 47)" fill="currentColor" fill-opacity=".5"/>
+        <path d="M28 112 C 38 104, 52 102, 60 90" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+        <ellipse cx="64" cy="87" rx="10" ry="5" transform="rotate(-28 64 87)" fill="currentColor" fill-opacity=".45"/>
+        <circle cx="62" cy="4" r="3.2" fill="currentColor" fill-opacity=".65"/>
+        <circle cx="54" cy="13" r="2.2" fill="currentColor" fill-opacity=".5"/>
+      </svg>
+      <div class="section-header">
+        <p class="section-tag">Vuestra Presencia es Nuestro Mejor Regalo</p>
+        <h2 class="section-title">Lista de Bodas</h2>
+        <div class="divider-gold"><span class="line"></span><span class="icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="9" width="16" height="11" rx="1"/><path d="M4 9h16v4H4z"/><path d="M12 9v11M12 9c-1.5-3-5-3-5-.5S9 9 12 9zm0 0c1.5-3 5-3 5-.5S15 9 12 9z"/></svg></span><span class="line"></span></div>
+      </div>
+      <p style="font-size:1.08rem; color:var(--body-text); margin-bottom:1.4rem;">
+        Si queréis tener un detalle adicional con nosotros para ayudarnos a comenzar esta nueva etapa, podéis hacerlo aquí:
+      </p>
+      <button class="btn-gold" onclick="openModal('iban-modal')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="9" width="16" height="11" rx="1"/><path d="M4 9h16v4H4z"/><path d="M12 9v11M12 9c-1.5-3-5-3-5-.5S9 9 12 9zm0 0c1.5-3 5-3 5-.5S15 9 12 9z"/></svg> Consultar Datos de Cuenta
+      </button>
+    </div>
+  </div>
+
+  <!-- 9. SOLO ADULTOS -->
+  <div class="section-wrap reveal">
+    <div class="card-premium" style="text-align:center; padding:1.8rem 1.4rem;">
+      <svg class="floral tl" viewBox="-15 0 100 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M15 175 C 25 140, 20 105, 38 72 C 52 48, 48 22, 62 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+        <path d="M38 72 C 48 64, 62 62, 70 50" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+        <ellipse cx="74" cy="47" rx="11" ry="5.5" transform="rotate(-32 74 47)" fill="currentColor" fill-opacity=".5"/>
+        <circle cx="62" cy="4" r="3.2" fill="currentColor" fill-opacity=".65"/>
+        <circle cx="54" cy="13" r="2.2" fill="currentColor" fill-opacity=".5"/>
+      </svg>
+      <p class="section-tag">Aviso Importante</p>
+      <h3 style="font-family:'Cinzel',serif; color:var(--emerald); font-size:1.2rem; margin:0.4rem 0;">Solo Adultos</h3>
+      <p style="font-size:0.98rem; color:var(--muted-text); font-style:italic; max-width:340px; margin:0 auto;">
+        "Aunque adoramos a los más pequeños, en esta ocasión hemos decidido celebrar este día en un ambiente solo para adultos."
+      </p>
+    </div>
+  </div>
+
+  <!-- 10. CONFIRMAR ASISTENCIA (RSVP) -->
+  <div class="section-wrap reveal" id="confirmar">
+    <div class="card-premium">
+      <svg class="floral tr" viewBox="-15 0 100 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M15 175 C 25 140, 20 105, 38 72 C 52 48, 48 22, 62 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+        <path d="M38 72 C 48 64, 62 62, 70 50" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+        <ellipse cx="74" cy="47" rx="11" ry="5.5" transform="rotate(-32 74 47)" fill="currentColor" fill-opacity=".5"/>
+        <path d="M28 112 C 38 104, 52 102, 60 90" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+        <ellipse cx="64" cy="87" rx="10" ry="5" transform="rotate(-28 64 87)" fill="currentColor" fill-opacity=".45"/>
+        <circle cx="62" cy="4" r="3.2" fill="currentColor" fill-opacity=".65"/>
+        <circle cx="54" cy="13" r="2.2" fill="currentColor" fill-opacity=".5"/>
+      </svg>
+      <div class="section-header">
+        <p class="section-tag">RSVP</p>
+        <h2 class="section-title">Confirma Tu Asistencia</h2>
+        <div class="divider-gold"><span class="line"></span><span class="icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></span><span class="line"></span></div>
+      </div>
+      <p style="text-align:center; font-size:1.05rem; color:var(--body-text); margin-bottom:1.2rem;">
+        Nos hará muy felices contar contigo en nuestro gran día. Por favor, confirma tu asistencia directamente por WhatsApp:
+      </p>
+      <div class="rsvp-buttons">
+        <a class="btn-whatsapp" href="https://wa.me/34646269513?text=Hola%20Gloria%2C%20confirmo%20mi%20asistencia%20a%20vuestra%20boda%20el%2031%20de%20julio%20de%202027." target="_blank">
+          <div class="wa-icon-badge">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+            </svg>
+          </div>
+          <div class="wa-content">
+            <span class="wa-title">Confirmar con Gloria</span>
+            <span class="wa-sub">Enviar mensaje por WhatsApp</span>
+          </div>
+          <span class="wa-arrow">➔</span>
+        </a>
+
+        <a class="btn-whatsapp" href="https://wa.me/34658898406?text=Hola%20Jos%C3%A9%2C%20confirmo%20mi%20asistencia%20a%20vuestra%20boda%20el%2031%20de%20julio%20de%202027." target="_blank">
+          <div class="wa-icon-badge">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+            </svg>
+          </div>
+          <div class="wa-content">
+            <span class="wa-title">Confirmar con José</span>
+            <span class="wa-sub">Enviar mensaje por WhatsApp</span>
+          </div>
+          <span class="wa-arrow">➔</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 11. CIERRE Y PIE DE PÁGINA -->
+  <div class="section-wrap reveal" style="text-align:center; margin-top:1rem; padding-bottom:3rem;">
+    <div class="card-premium" style="background:transparent; border:none; box-shadow:none;">
+      <p style="font-style:italic; font-size:1.2rem; color:var(--body-text); margin-bottom:1rem;">
+        "La vida está hecha de momentos... y este será uno de los más importantes de la nuestra. Gracias por acompañarnos."
+      </p>
+      <p style="font-family:'Alex Brush',cursive; font-size:3.2rem; color:var(--gold-dark); margin:0.5rem 0;">
+        Gloria &amp; José
+      </p>
+      <div class="divider-gold"><span class="line"></span><span class="icon">♥</span><span class="line"></span></div>
+      <p style="font-family:'Montserrat',sans-serif; font-size:0.65rem; letter-spacing:0.2em; color:var(--gold-dark); text-transform:uppercase; margin-top:1.5rem;">
+        ¡OS ESPERAMOS!
+      </p>
+    </div>
+  </div>
+
+  <svg class="floral bl" viewBox="-15 0 100 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M15 175 C 25 140, 20 105, 38 72 C 52 48, 48 22, 62 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+    <path d="M38 72 C 48 64, 62 62, 70 50" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+    <ellipse cx="74" cy="47" rx="11" ry="5.5" transform="rotate(-32 74 47)" fill="currentColor" fill-opacity=".5"/>
+    <path d="M28 112 C 38 104, 52 102, 60 90" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+    <ellipse cx="64" cy="87" rx="10" ry="5" transform="rotate(-28 64 87)" fill="currentColor" fill-opacity=".45"/>
+    <path d="M22 145 C 12 140, 2 142, -4 133" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+    <ellipse cx="-6" cy="131" rx="10" ry="5" transform="rotate(24 -6 131)" fill="currentColor" fill-opacity=".45"/>
+    <circle cx="62" cy="4" r="3.2" fill="currentColor" fill-opacity=".65"/>
+    <circle cx="54" cy="13" r="2.2" fill="currentColor" fill-opacity=".5"/>
+    <circle cx="70" cy="12" r="2" fill="currentColor" fill-opacity=".4"/>
+  </svg>
+  <svg class="floral br" viewBox="-15 0 100 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M15 175 C 25 140, 20 105, 38 72 C 52 48, 48 22, 62 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+    <path d="M38 72 C 48 64, 62 62, 70 50" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+    <ellipse cx="74" cy="47" rx="11" ry="5.5" transform="rotate(-32 74 47)" fill="currentColor" fill-opacity=".5"/>
+    <path d="M28 112 C 38 104, 52 102, 60 90" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+    <ellipse cx="64" cy="87" rx="10" ry="5" transform="rotate(-28 64 87)" fill="currentColor" fill-opacity=".45"/>
+    <path d="M22 145 C 12 140, 2 142, -4 133" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+    <ellipse cx="-6" cy="131" rx="10" ry="5" transform="rotate(24 -6 131)" fill="currentColor" fill-opacity=".45"/>
+    <circle cx="62" cy="4" r="3.2" fill="currentColor" fill-opacity=".65"/>
+    <circle cx="54" cy="13" r="2.2" fill="currentColor" fill-opacity=".5"/>
+    <circle cx="70" cy="12" r="2" fill="currentColor" fill-opacity=".4"/>
+  </svg>
+
+</div>
+
+<!-- ══ MODAL DE DATOS IBAN ═══════════════════════════ -->
+<div class="modal-overlay" id="iban-modal">
+  <div class="modal-card">
+    <button class="modal-close" onclick="closeModal('iban-modal')">✕</button>
+    <div class="section-header" style="margin-bottom:1rem;">
+      <p class="section-tag">Datos Bancarios</p>
+      <h3 class="section-title" style="font-size:1.4rem">Número de Cuenta</h3>
+    </div>
+    <p style="font-size:0.95rem; color:var(--body-text);">Titulares: Gloria &amp; José</p>
+    <div class="iban-code" id="iban-text">ES12 3456 7890 1234 5678 9012</div>
+    <button class="btn-gold" onclick="copyIBAN()" style="font-size:0.7rem; padding:0.75rem 1.6rem;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="8" y="8" width="12" height="12" rx="1.5"/><path d="M16 8V5.5A1.5 1.5 0 0014.5 4h-9A1.5 1.5 0 004 5.5v9A1.5 1.5 0 005.5 16H8"/></svg> Copiar IBAN
+    </button>
+  </div>
+</div>
+
+<!-- ══ MODAL DE LIGHTBOX DE FOTOS ════════════════════ -->
+<div class="modal-overlay" id="lightbox-modal" onclick="closeModal('lightbox-modal')">
+  <div class="modal-card" style="padding:0.8rem; background:transparent; box-shadow:none; max-width:440px;" onclick="event.stopPropagation()">
+    <img id="lightbox-img" src="" alt="Vista previa de foto" style="width:100%; border-radius:18px; display:block; box-shadow:0 20px 50px rgba(0,0,0,0.5);">
+    <button class="btn-gold" onclick="closeModal('lightbox-modal')" style="margin-top:1rem; font-size:0.7rem; padding:0.6rem 1.4rem;">
+      Cerrar
+    </button>
+  </div>
+</div>
+
+<script>
+  // ── PANTALLA DE APERTURA ───────────────────────────
+  function openInvitation() {
+    document.getElementById('gate').classList.add('closed');
+    document.body.style.overflow = '';
+
+    const bgMusic = document.getElementById('bg-music');
+    if (bgMusic && musicOn) {
+      bgMusic.play().catch(e => console.log('Autoplay audio:', e));
+    }
+  }
+  document.body.style.overflow = 'hidden';
+
+  // ── PÉTALOS FLOTANTES ──────────────────────────────
+  const petalsWrap = document.getElementById('petals');
+  for (let i = 0; i < 12; i++) {
+    const p = document.createElement('div');
+    p.className = 'petal';
+    p.style.left = (Math.random() * 100) + '%';
+    p.style.setProperty('--drift', (Math.random() * 80 - 40) + 'px');
+    p.style.animationDuration = (12 + Math.random() * 10) + 's';
+    p.style.animationDelay = (-Math.random() * 15) + 's';
+    petalsWrap.appendChild(p);
+  }
+
+  // ── RELEJ DE CUENTA ATRÁS ──────────────────────────
+  function updateCountdown() {
+    const target = new Date('2027-07-31T20:30:00');
+    const now = new Date();
+    const diff = target - now;
+
+    if (diff <= 0) {
+      ['cd-days','cd-hours','cd-mins','cd-secs'].forEach(id => document.getElementById(id).textContent = '0');
+      return;
+    }
+
+    document.getElementById('cd-days').textContent  = Math.floor(diff / 86400000);
+    document.getElementById('cd-hours').textContent = Math.floor((diff % 86400000) / 3600000);
+    document.getElementById('cd-mins').textContent  = Math.floor((diff % 3600000) / 60000);
+    document.getElementById('cd-secs').textContent  = Math.floor((diff % 60000) / 1000);
+  }
+  updateCountdown();
+  setInterval(updateCountdown, 1000);
+
+  // ── GENERADOR Y DESCARGA DE ARCHIVO .ICS ────────────
+  function downloadICS() {
+    const icsData = 
+`BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Boda Gloria y Jose//ES
+BEGIN:VEVENT
+SUMMARY:Boda Gloria & José 💍
+DESCRIPTION:¡Nos casamos! Acompáñanos a celebrar nuestra boda en Hacienda El Triunfo, Espartinas, Sevilla.
+LOCATION:Hacienda El Triunfo, Espartinas, Sevilla
+DTSTART:20270731T183000Z
+DTEND:20270801T040000Z
+END:VEVENT
+END:VCALENDAR`;
+    const blob = new Blob([icsData], { type: 'text/calendar;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = window.URL.createObjectURL(blob);
+    link.setAttribute('download', 'Boda_Gloria_y_Jose_2027.ics');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  // ── REVEAL ON SCROLL ───────────────────────────────
+  const reveals = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.05, rootMargin: '0px 0px -8% 0px' });
+  reveals.forEach(r => io.observe(r));
+
+  // ── BARRA DE PROGRESO DE LECTURA ───────────────────
+  const progress = document.getElementById('progress');
+  function updateProgress() {
+    const h = document.documentElement;
+    const scrolled = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
+    progress.style.width = (isFinite(scrolled) ? scrolled : 0) + '%';
+  }
+  document.addEventListener('scroll', updateProgress);
+
+  // ── CONTROL DE MENÚ DESLIZABLE ─────────────────────
+  const navOverlay = document.getElementById('nav-overlay');
+  function toggleMenu() {
+    navOverlay.classList.toggle('open');
+  }
+
+  // ── MODALES (IBAN & LIGHTBOX) ──────────────────────
+  function openModal(id) {
+    document.getElementById(id).classList.add('active');
+  }
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('active');
+  }
+  function copyIBAN() {
+    const text = document.getElementById('iban-text').textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      alert('¡IBAN copiado al portapapeles!');
+    });
+  }
+  function openLightbox(src) {
+    document.getElementById('lightbox-img').src = src;
+    openModal('lightbox-modal');
+  }
+
+  // ── AUDIO / MÚSICA AMBIENTAL ───────────────────────
+  let musicOn = true;
+
+  function toggleMusic() {
+    musicOn = !musicOn;
+    const badge = document.getElementById('music-badge');
+    badge.classList.toggle('playing', musicOn);
+    document.getElementById('music-label').textContent = musicOn ? 'Música' : 'Pausado';
+
+    const bgMusic = document.getElementById('bg-music');
+    if (bgMusic) {
+      if (musicOn) {
+        bgMusic.play().catch(e => console.log('Audio play error:', e));
+      } else {
+        bgMusic.pause();
+      }
+    }
+  }
+</script>
+
+<!-- REPRODUCTOR DE MÚSICA DE FONDO -->
+<audio id="bg-music" loop preload="auto">
+  <source src="img/Ed%20Sheeran%20-%20Perfect%20(Official%20Music%20Video).mp3" type="audio/mpeg">
+  <source src="img/musica.mp3" type="audio/mpeg">
+  <source src="musica.mp3" type="audio/mpeg">
+</audio>
+
+</body>
+</html>
