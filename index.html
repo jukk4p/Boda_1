@@ -149,6 +149,10 @@
     cursor: pointer;
     margin-bottom: 2rem;
   }
+  .nav-monogram-img {
+    width: 84px; height: 84px;
+    display: block; margin: 0 auto 0.8rem;
+  }
   .nav-monogram {
     font-family: 'Cinzel', serif;
     color: var(--gold-light);
@@ -156,7 +160,7 @@
     letter-spacing: 0.06em;
     text-align: center;
     line-height: 1.4;
-    margin-bottom: 2.5rem;
+    margin-bottom: 2rem;
   }
   .nav-links { list-style: none; display: flex; flex-direction: column; gap: 1.2rem; }
   .nav-links a {
@@ -223,38 +227,13 @@
     margin-bottom: 1.4rem;
   }
   .wax-seal {
-    width: 92px; height: 92px;
-    position: relative;
-    background: radial-gradient(circle at 35% 28%, #f2ddb0 0%, #d4a96b 45%, #9e753b 100%);
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    margin: 0 auto 1.5rem;
-    box-shadow:
-      0 12px 28px rgba(158, 117, 59, 0.4),
-      inset 0 2px 5px rgba(255,255,255,0.55),
-      inset 0 -4px 8px rgba(0,0,0,0.22);
-    border: 2px solid #e2c290;
+    width: 150px; height: 150px;
+    display: block;
+    margin: 0 auto 1.2rem;
+    filter: drop-shadow(0 10px 20px rgba(158, 117, 59, 0.35));
     animation: sealFloat 4s ease-in-out infinite;
-    overflow: hidden;
-  }
-  .wax-seal::before {
-    content: '';
-    position: absolute; inset: -8px;
-    border-radius: 50%;
-    border: 1px solid rgba(201,160,99,0.45);
-  }
-  .wax-seal::after {
-    content: '';
-    position: absolute; inset: 0;
-    border-radius: 50%;
-    background: linear-gradient(115deg, transparent 35%, rgba(255,255,255,0.65) 50%, transparent 65%);
-    background-size: 260% 260%;
-    background-position: -140% -140%;
-    animation: sealShine 5.5s ease-in-out infinite;
   }
   @keyframes sealFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
-  @keyframes sealShine { 0%, 55% { background-position: -140% -140%; } 75%, 100% { background-position: 140% 140%; } }
-  .wax-seal span { position: relative; z-index: 1; font-family: 'Cinzel', serif; font-size: 1.5rem; font-weight: 600; color: #1a382b; }
 
   .gate-names {
     font-family: 'Cinzel', serif;
@@ -422,6 +401,11 @@
     background:
       radial-gradient(circle at 50% 0%, rgba(201,160,99,0.12) 0%, transparent 60%),
       var(--card-bg);
+  }
+  .hero-monogram {
+    width: 108px; height: 108px;
+    display: block; margin: 0 auto 1rem;
+    filter: drop-shadow(0 6px 14px rgba(158, 117, 59, 0.3));
   }
   .hero-kicker {
     font-family: 'Montserrat', sans-serif;
@@ -760,7 +744,7 @@
   .js .reveal.visible { opacity: 1; transform: translateY(0); }
 
   @media (prefers-reduced-motion: reduce) {
-    .reveal, .wax-seal, .wax-seal::after, .btn-gold::after, .music-badge .note, .petal, .app { animation: none !important; transition: none !important; opacity: 1 !important; transform: none !important; }
+    .reveal, .wax-seal, .btn-gold::after, .music-badge .note, .petal, .app { animation: none !important; transition: none !important; opacity: 1 !important; transform: none !important; }
   }
 </style>
 </head>
@@ -794,9 +778,7 @@
       <circle cx="70" cy="12" r="2" fill="currentColor" fill-opacity=".4"/>
     </svg>
     <p class="gate-kicker">Bienvenidos a nuestra boda</p>
-    <div class="wax-seal">
-      <span>G&J</span>
-    </div>
+    <img class="wax-seal" src="img/monogram.png" alt="Monograma Gloria &amp; José">
     <p class="gate-names">Gloria & José</p>
     <p class="gate-sub">Nos casamos • 31 de Julio de 2027</p>
     <div class="divider-gold" style="margin-bottom:1.6rem"><span class="line"></span><span class="icon">♦</span><span class="line"></span></div>
@@ -820,6 +802,7 @@
 <div class="nav-overlay" id="nav-overlay">
   <nav class="nav-drawer">
     <button class="nav-close" onclick="toggleMenu()" aria-label="Cerrar">✕</button>
+    <img class="nav-monogram-img" src="img/monogram.png" alt="Monograma Gloria &amp; José">
     <p class="nav-monogram">Boda Gloria &amp; José</p>
     <ul class="nav-links">
       <li><a href="#inicio" onclick="toggleMenu()"><span class="dot"></span>Inicio</a></li>
@@ -876,6 +859,7 @@
         <circle cx="62" cy="4" r="3.2" fill="currentColor" fill-opacity=".65"/>
         <circle cx="54" cy="13" r="2.2" fill="currentColor" fill-opacity=".5"/>
       </svg>
+      <img class="hero-monogram" src="img/monogram.png" alt="Monograma Gloria &amp; José">
       <p class="hero-kicker">Nuestra Boda</p>
       <h1 class="hero-names">Gloria <span class="hero-amp">&amp;</span> José</h1>
       <p class="hero-date">31 • Julio • 2027 • Sevilla</p>
