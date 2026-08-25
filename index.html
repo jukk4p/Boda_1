@@ -65,13 +65,14 @@
   /* ── TOP FLOATING CONTROL BAR (Sin líneas de borde inferior) ═ */
   .topbar {
     position: fixed;
-    top: 6px; left: 50%;
-    transform: translateX(-50%);
+    top: 6px; left: 0; right: 0;
+    margin: 0 auto;
     width: 100%; max-width: 480px;
     display: flex; align-items: center; justify-content: space-between;
     padding: 0.8rem 1.2rem;
     z-index: 200;
     pointer-events: none;
+    box-sizing: border-box;
   }
   .music-badge {
     pointer-events: auto;
