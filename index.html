@@ -28,8 +28,8 @@
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html { scroll-behavior: smooth; }
-  html, body { max-width: 100%; overflow-x: hidden; }
+  html { scroll-behavior: smooth; overflow-x: hidden; }
+  html, body { max-width: 100%; }
 
   body {
     font-family: 'Cormorant Garamond', serif;
@@ -346,6 +346,7 @@
     border-radius: 16px;
     padding: 0.85rem 0.3rem;
     text-align: center;
+    min-width: 0;
   }
   .cd-val {
     font-family: 'Cormorant Garamond', serif;
