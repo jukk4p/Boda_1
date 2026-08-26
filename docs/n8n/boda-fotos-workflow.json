@@ -30,6 +30,7 @@
           "mode": "id",
           "value": "PON_AQUI_EL_FOLDER_ID"
         },
+        "inputDataFieldName": "data",
         "options": {}
       },
       "id": "google-drive-upload",
@@ -59,8 +60,8 @@
     {
       "parameters": {
         "respondWith": "json",
-        "responseCode": 500,
-        "responseBody": "={{ { ok: false, error: 'upload_failed' } }}"
+        "responseBody": "={{ { ok: false, error: 'upload_failed' } }}",
+        "options": { "responseCode": 500 }
       },
       "id": "respond-error",
       "name": "Respond Error",

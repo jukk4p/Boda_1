@@ -38,6 +38,15 @@ final de la URL:
 5. Abre el nodo **Webhook** y copia la "Production URL" — esa es la URL
    que va en la constante `WEBHOOK_URL` de `index.html` (Task 5).
 
+> **Nota:** el candado `uploadActive` del frontend bloquea la subida en el
+> navegador hasta el día de la boda, pero el webhook de n8n en sí no tiene
+> ningún control de fechas — una vez activado queda como endpoint público
+> y sin autenticación durante los ~11 meses hasta la boda. Como el
+> proyecto deja fuera de alcance añadir autenticación/moderación, la
+> mitigación gratuita es operativa: una vez termines de configurar y
+> probar el workflow, vuelve a desactivarlo (interruptor "Active" en
+> off) y actívalo de nuevo solo cerca de la fecha de la boda.
+
 ## 4. Subir el límite de tamaño de body en el proxy
 
 Coolify pone n8n detrás de Traefik. Por defecto Traefik no limita el
@@ -63,3 +72,16 @@ curl -F "data=@/ruta/a/una/foto.jpg" https://TU_WEBHOOK_URL
 
 Expected: la respuesta es `{"ok":true}` y la foto aparece en la carpeta
 de Drive en menos de un minuto.
+
+**Importante:** este `curl` no valida CORS — se ejecuta desde tu terminal,
+no desde el dominio del sitio, así que puede devolver éxito aunque el
+navegador lo rechace. Para comprobar CORS hace falta probar desde un
+navegador o móvil real, cargando la web en su dominio de producción y
+subiendo un archivo desde ahí. Si esa prueba en el navegador muestra
+"Hubo un problema" pero el archivo sí aparece en Drive, la causa más
+probable es CORS: revisa la opción "Allowed Origins (CORS)" del nodo
+**Webhook** y asegúrate de que incluye el dominio real del sitio (o usa
+`*`). El mismo desajuste silencioso —éxito real en Drive, error visible
+para el invitado— puede darse con un 413 de Traefik (body demasiado
+grande, ver sección 4): tampoco lleva cabeceras CORS y, desde el
+navegador, es indistinguible de un fallo de CORS.
