@@ -1127,9 +1127,7 @@
       </p>
 
       <div class="qr-wrap" id="qr-wrap" style="background:var(--bg-cream); padding:1.2rem; border-radius:18px; border:1px solid var(--border-gold); display:inline-block; margin-bottom:1.2rem; box-shadow:0 4px 12px rgba(0,0,0,0.05)">
-        <svg width="140" height="140" viewBox="0 0 100 100" fill="#1a382b">
-          <path d="M0 0h35v35H0zM5 5v25h25V5zm5 5h15v15H10zM65 0h35v35H65zM70 5v25h25V5zm5 5h15v15H75zM0 65h35v35H0zM5 70v25h25V70zm5 5h15v15H10zM40 5h15v15H40zM40 25h10v10H40zM45 40h20v10H45zM25 45h15v15H25zM65 45h15v15H65zM85 45h15v20H85zM45 65h10v20H45zM60 65h20v10H60zM75 80h20v20H75zM55 85h15v15H55z"/>
-        </svg>
+        <div id="qr-canvas" role="img" aria-label="Código QR para subir tus fotos y vídeos" style="width:140px; height:140px;"></div>
         <div class="qr-lock-overlay" id="qr-lock-overlay">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
           <span>Disponible el<br>31 de Julio de 2027</span>
@@ -1359,6 +1357,7 @@
   </div>
 </div>
 
+<script src="js/qrcode.js"></script>
 <script>
   // ── PANTALLA DE APERTURA ───────────────────────────
   function openInvitation() {
@@ -1540,6 +1539,18 @@ END:VCALENDAR`;
       if (btnLabel) btnLabel.textContent = 'Disponible el día de la boda';
     }
   })();
+
+  // ── QR REAL: enlaza a la sección de Recuerdos ──────
+  (function generateQr() {
+    const qrCanvas = document.getElementById('qr-canvas');
+    if (!qrCanvas || typeof qrcode !== 'function') return;
+    const qrUrl = location.origin + location.pathname + '#recuerdos';
+    const qr = qrcode(0, 'M');
+    qr.addData(qrUrl);
+    qr.make();
+    qrCanvas.innerHTML = qr.createSvgTag(4, 8).replace(/fill="black"/, 'fill="#1a382b"');
+  })();
+
   function handleUploadClick() {
     if (!uploadActive) {
       alert('¡Esta sección se activará el día de la boda (31 de julio de 2027)! Guardad vuestras fotos y compartidlas con nosotros ese día. 💍');
