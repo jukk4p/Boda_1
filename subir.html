@@ -78,6 +78,18 @@
     box-shadow: none;
   }
   .btn-gold.is-disabled:hover { transform: none; box-shadow: none; color: #f1ede3; }
+  .back-link {
+    display: inline-block;
+    margin-top: 1.6rem;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    color: var(--gold-dark);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.2s ease;
+  }
+  .back-link:hover { border-color: var(--gold-dark); }
 </style>
 </head>
 <body>
@@ -88,6 +100,8 @@
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.2"/></svg> <span id="upload-btn-label">Subir Fotos y Vídeos</span>
     </button>
     <input type="file" id="upload-input" multiple accept="image/*,video/*" style="display:none">
+    <br>
+    <a class="back-link" href="index.html">← Volver a la invitación</a>
   </div>
 
   <script src="js/upload.js"></script>
