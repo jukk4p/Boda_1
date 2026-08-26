@@ -496,13 +496,14 @@
   .venue-carousel::-webkit-scrollbar { display: none; }
   .venue-slide {
     flex: 0 0 100%;
+    aspect-ratio: 4 / 5;
     scroll-snap-align: center;
     border-radius: 16px;
     overflow: hidden;
     box-shadow: 0 8px 20px rgba(0,0,0,0.08);
     cursor: pointer;
   }
-  .venue-slide img { width: 100%; height: auto; display: block; }
+  .venue-slide img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .venue-dots {
     display: flex; justify-content: center; align-items: center;
     gap: 0.5rem; margin-bottom: 0.4rem;
@@ -814,6 +815,7 @@
       <li><a href="#recuerdos" onclick="toggleMenu()"><span class="dot"></span>Recuerdos</a></li>
       <li><a href="#lista" onclick="toggleMenu()"><span class="dot"></span>Regalos</a></li>
       <li><a href="#confirmar" onclick="toggleMenu()"><span class="dot"></span>Confirmar Asistencia</a></li>
+      <li><a href="#alergias" onclick="toggleMenu()"><span class="dot"></span>Alergias</a></li>
     </ul>
   </nav>
 </div>
@@ -940,15 +942,26 @@
       </div>
 
       <div class="venue-carousel" id="venue-carousel">
-        <div class="venue-slide" onclick="openLightbox('img/hacienda-1.jpg')">
-          <img src="img/hacienda-1.jpg" alt="Hacienda El Triunfo, Espartinas, Sevilla">
+        <div class="venue-slide" onclick="openLightbox('img/gran-dia-1.jpg')">
+          <img src="img/gran-dia-1.jpg" alt="Entrada de Hacienda El Triunfo, Espartinas, Sevilla">
         </div>
-        <div class="venue-slide" onclick="openLightbox('img/hacienda-3.webp')">
-          <img src="img/hacienda-3.webp" alt="Piscina y jardines de Hacienda El Triunfo">
+        <div class="venue-slide" onclick="openLightbox('img/gran-dia-2.jpg')">
+          <img src="img/gran-dia-2.jpg" alt="Patio con mesas altas de Hacienda El Triunfo">
+        </div>
+        <div class="venue-slide" onclick="openLightbox('img/gran-dia-3.jpg')">
+          <img src="img/gran-dia-3.jpg" alt="Jardines y mesas de Hacienda El Triunfo">
+        </div>
+        <div class="venue-slide" onclick="openLightbox('img/gran-dia-4.jpg')">
+          <img src="img/gran-dia-4.jpg" alt="Pérgola y acceso de Hacienda El Triunfo">
+        </div>
+        <div class="venue-slide" aria-hidden="true" onclick="openLightbox('img/gran-dia-1.jpg')">
+          <img src="img/gran-dia-1.jpg" alt="">
         </div>
       </div>
       <div class="venue-dots" id="venue-dots">
         <span class="venue-dot active"></span>
+        <span class="venue-dot"></span>
+        <span class="venue-dot"></span>
         <span class="venue-dot"></span>
       </div>
 
@@ -1144,12 +1157,11 @@
         <circle cx="54" cy="13" r="2.2" fill="currentColor" fill-opacity=".5"/>
       </svg>
       <div class="section-header">
-        <p class="section-tag">Vuestra Presencia es Nuestro Mejor Regalo</p>
-        <h2 class="section-title">Lista de Bodas</h2>
+        <h2 class="section-title">¡Compartir Contigo Este Momento es Nuestro Mejor Regalo!</h2>
         <div class="divider-gold"><span class="line"></span><span class="icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="9" width="16" height="11" rx="1"/><path d="M4 9h16v4H4z"/><path d="M12 9v11M12 9c-1.5-3-5-3-5-.5S9 9 12 9zm0 0c1.5-3 5-3 5-.5S15 9 12 9z"/></svg></span><span class="line"></span></div>
       </div>
       <p style="font-size:1.08rem; color:var(--body-text); margin-bottom:1.4rem;">
-        Si queréis tener un detalle adicional con nosotros para ayudarnos a comenzar esta nueva etapa, podéis hacerlo aquí:
+        Pero si quieres tener un pequeño detalle con nosotros, aquí abajo puedes consultar nuestros datos de cuenta:
       </p>
       <button class="btn-gold" onclick="openModal('iban-modal')">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="9" width="16" height="11" rx="1"/><path d="M4 9h16v4H4z"/><path d="M12 9v11M12 9c-1.5-3-5-3-5-.5S9 9 12 9zm0 0c1.5-3 5-3 5-.5S15 9 12 9z"/></svg> Consultar Datos de Cuenta
@@ -1228,6 +1240,56 @@
     </div>
   </div>
 
+  <!-- 10.5 ALERGIAS E INTOLERANCIAS -->
+  <div class="section-wrap reveal" id="alergias">
+    <div class="card-premium">
+      <svg class="floral br" viewBox="-15 0 100 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M15 175 C 25 140, 20 105, 38 72 C 52 48, 48 22, 62 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+        <path d="M38 72 C 48 64, 62 62, 70 50" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+        <ellipse cx="74" cy="47" rx="11" ry="5.5" transform="rotate(-32 74 47)" fill="currentColor" fill-opacity=".5"/>
+        <path d="M28 112 C 38 104, 52 102, 60 90" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+        <ellipse cx="64" cy="87" rx="10" ry="5" transform="rotate(-28 64 87)" fill="currentColor" fill-opacity=".45"/>
+        <circle cx="62" cy="4" r="3.2" fill="currentColor" fill-opacity=".65"/>
+        <circle cx="54" cy="13" r="2.2" fill="currentColor" fill-opacity=".5"/>
+      </svg>
+      <div class="section-header">
+        <p class="section-tag">Tu Bienestar Nos Importa</p>
+        <h2 class="section-title">Alergias e Intolerancias</h2>
+        <div class="divider-gold"><span class="line"></span><span class="icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><path d="M12 9v4"/><path d="M12 16h.01"/></svg></span><span class="line"></span></div>
+      </div>
+      <p style="text-align:center; font-size:1.05rem; color:var(--body-text); margin-bottom:1.2rem;">
+        Queremos que disfrutéis del menú sin preocupaciones. Si tú o alguno de tus acompañantes tenéis alguna alergia o intolerancia alimentaria, avisadnos por WhatsApp:
+      </p>
+      <div class="rsvp-buttons">
+        <a class="btn-whatsapp" href="https://wa.me/34646269513?text=Hola%20Gloria%2C%20quiero%20avisaros%20de%20una%20alergia%20o%20intolerancia%20alimentaria%20para%20la%20boda%3A%20" target="_blank">
+          <div class="wa-icon-badge">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+            </svg>
+          </div>
+          <div class="wa-content">
+            <span class="wa-title">Avisar a Gloria</span>
+            <span class="wa-sub">Enviar mensaje por WhatsApp</span>
+          </div>
+          <span class="wa-arrow">➔</span>
+        </a>
+
+        <a class="btn-whatsapp" href="https://wa.me/34658898406?text=Hola%20Jos%C3%A9%2C%20quiero%20avisaros%20de%20una%20alergia%20o%20intolerancia%20alimentaria%20para%20la%20boda%3A%20" target="_blank">
+          <div class="wa-icon-badge">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+            </svg>
+          </div>
+          <div class="wa-content">
+            <span class="wa-title">Avisar a José</span>
+            <span class="wa-sub">Enviar mensaje por WhatsApp</span>
+          </div>
+          <span class="wa-arrow">➔</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
   <!-- 11. CIERRE Y PIE DE PÁGINA -->
   <div class="section-wrap reveal" style="text-align:center; margin-top:1rem; padding-bottom:3rem;">
     <div class="card-premium" style="background:transparent; border:none; box-shadow:none;">
@@ -1279,8 +1341,8 @@
       <p class="section-tag">Datos Bancarios</p>
       <h3 class="section-title" style="font-size:1.4rem">Número de Cuenta</h3>
     </div>
-    <p style="font-size:0.95rem; color:var(--body-text);">Titulares: Gloria &amp; José</p>
-    <div class="iban-code" id="iban-text">ES12 3456 7890 1234 5678 9012</div>
+    <p style="font-size:0.95rem; color:var(--body-text);">Titulares: Gloria Garcia De sardi &amp; José Gonzalez Ufano </p>
+    <div class="iban-code" id="iban-text">ES5415830001189161057017</div>
     <button class="btn-gold" onclick="copyIBAN()" style="font-size:0.7rem; padding:0.75rem 1.6rem;">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="8" y="8" width="12" height="12" rx="1.5"/><path d="M16 8V5.5A1.5 1.5 0 0014.5 4h-9A1.5 1.5 0 004 5.5v9A1.5 1.5 0 005.5 16H8"/></svg> Copiar IBAN
     </button>
@@ -1414,16 +1476,56 @@ END:VCALENDAR`;
     const carousel = document.getElementById('venue-carousel');
     const dots = document.querySelectorAll('#venue-dots .venue-dot');
     if (!carousel || !dots.length) return;
+    const total = dots.length; // slides reales (el carrusel tiene 1 clon extra del primero al final para el loop)
+
+    // Al llegar al clon final, salta sin animación al slide real 0 (mismo aspecto visual, salto invisible)
+    let settleTimer;
     carousel.addEventListener('scroll', () => {
       const idx = Math.round(carousel.scrollLeft / carousel.clientWidth);
-      dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+      dots.forEach((d, i) => d.classList.toggle('active', i === idx % total));
+      clearTimeout(settleTimer);
+      settleTimer = setTimeout(() => {
+        const settledIdx = Math.round(carousel.scrollLeft / carousel.clientWidth);
+        if (settledIdx >= total) {
+          carousel.scrollLeft = 0;
+        }
+      }, 120);
     }, { passive: true });
+
     dots.forEach((d, i) => {
       d.style.cursor = 'pointer';
       d.addEventListener('click', () => {
         carousel.scrollTo({ left: i * carousel.clientWidth, behavior: 'smooth' });
       });
     });
+
+    // Autoplay: avanza sola siempre hacia la derecha (incluso de la última a la primera), se pausa si el usuario interactúa
+    const AUTOPLAY_MS = 4500;
+    let autoplayTimer = null;
+    function nextSlide() {
+      const idx = Math.round(carousel.scrollLeft / carousel.clientWidth);
+      if (idx >= total) {
+        carousel.scrollLeft = 0;
+        return;
+      }
+      carousel.scrollTo({ left: (idx + 1) * carousel.clientWidth, behavior: 'smooth' });
+    }
+    function startAutoplay() {
+      stopAutoplay();
+      autoplayTimer = setInterval(nextSlide, AUTOPLAY_MS);
+    }
+    function stopAutoplay() {
+      if (autoplayTimer) { clearInterval(autoplayTimer); autoplayTimer = null; }
+    }
+    let resumeTimer;
+    function pauseAndResume() {
+      stopAutoplay();
+      clearTimeout(resumeTimer);
+      resumeTimer = setTimeout(startAutoplay, 6000);
+    }
+    carousel.addEventListener('pointerdown', pauseAndResume, { passive: true });
+    dots.forEach(d => d.addEventListener('pointerdown', pauseAndResume, { passive: true }));
+    startAutoplay();
   })();
 
   // ── SUBIDA DE FOTOS: bloqueada hasta el día de la boda ──
