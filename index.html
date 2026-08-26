@@ -1136,7 +1136,7 @@
       </div>
 
       <div>
-        <button class="btn-gold" id="upload-btn" onclick="handleUploadClick()">
+        <button class="btn-gold" id="upload-btn">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.2"/></svg> <span id="upload-btn-label">Subir Fotos y Vídeos</span>
         </button>
         <input type="file" id="upload-input" multiple accept="image/*,video/*" style="display:none">
@@ -1360,6 +1360,7 @@
 </div>
 
 <script src="js/qrcode.js"></script>
+<script src="js/upload.js"></script>
 <script>
   // ── PANTALLA DE APERTURA ───────────────────────────
   function openInvitation() {
@@ -1367,8 +1368,10 @@
     document.body.style.overflow = '';
 
     if (location.hash) {
-      const t = document.querySelector(location.hash);
-      if (t) setTimeout(() => t.scrollIntoView({ behavior: 'smooth' }), 300);
+      try {
+        const t = document.querySelector(location.hash);
+        if (t) setTimeout(() => t.scrollIntoView({ behavior: 'smooth' }), 300);
+      } catch (e) { /* hash no es un selector válido, ignorar */ }
     }
 
     const bgMusic = document.getElementById('bg-music');
@@ -1547,11 +1550,11 @@ END:VCALENDAR`;
     }
   })();
 
-  // ── QR REAL: enlaza a la sección de Recuerdos ──────
+  // ── QR REAL: enlaza a la página de subida directa ──
   (function generateQr() {
     const qrCanvas = document.getElementById('qr-canvas');
     if (!qrCanvas || typeof qrcode !== 'function') return;
-    const qrUrl = location.origin + location.pathname + '#recuerdos';
+    const qrUrl = location.origin + location.pathname.replace(/[^/]*$/, '') + 'subir.html';
     const qr = qrcode(0, 'M');
     qr.addData(qrUrl);
     qr.make();
@@ -1559,73 +1562,13 @@ END:VCALENDAR`;
   })();
 
   // ── SUBIDA DE ARCHIVOS: envío al webhook de n8n ────
-  const WEBHOOK_URL = 'https://n8n.ivangonzalez.cloud/webhook/boda-fotos';
-  const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024;
-  const ALLOWED_TYPE_PREFIXES = ['image/', 'video/'];
-
-  let isUploading = false;
-  let resetLabelTimeoutId = null;
-
-  function handleUploadClick() {
-    if (!uploadActive) {
-      alert('¡Esta sección se activará el día de la boda (31 de julio de 2027)! Guardad vuestras fotos y compartidlas con nosotros ese día. 💍');
-      return;
-    }
-    if (isUploading) return;
-    document.getElementById('upload-input').click();
-  }
-
-  document.getElementById('upload-input').addEventListener('change', async (e) => {
-    const files = Array.from(e.target.files);
-    e.target.value = '';
-    if (files.length === 0) return;
-
-    const btnLabel = document.getElementById('upload-btn-label');
-    const originalLabel = 'Subir Fotos y Vídeos';
-    let okCount = 0;
-    let failCount = 0;
-    let rejectedCount = 0;
-
-    isUploading = true;
-    try {
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        btnLabel.textContent = `Subiendo ${i + 1}/${files.length}…`;
-
-        const isAllowedType = ALLOWED_TYPE_PREFIXES.some(p => file.type.startsWith(p));
-        if (!isAllowedType || file.size > MAX_FILE_SIZE_BYTES) {
-          rejectedCount++;
-          continue;
-        }
-
-        try {
-          const formData = new FormData();
-          formData.append('data', file, file.name);
-          const res = await fetch(WEBHOOK_URL, { method: 'POST', body: formData, signal: AbortSignal.timeout(120000) });
-          if (res.ok) { okCount++; } else { failCount++; }
-        } catch (err) {
-          failCount++;
-        }
-      }
-
-      let statusText;
-      if (failCount === 0 && rejectedCount === 0) {
-        statusText = '¡Gracias, recibido!';
-      } else if (okCount > 0) {
-        statusText = `${okCount} subida(s), ${failCount} con error`;
-      } else {
-        statusText = 'Hubo un problema, inténtalo de nuevo';
-      }
-      if (rejectedCount > 0) {
-        statusText += ` — ${rejectedCount} archivo(s) no válido(s) (tipo o tamaño)`;
-      }
-      btnLabel.textContent = statusText;
-
-      if (resetLabelTimeoutId) clearTimeout(resetLabelTimeoutId);
-      resetLabelTimeoutId = setTimeout(() => { btnLabel.textContent = originalLabel; }, 3000);
-    } finally {
-      isUploading = false;
-    }
+  // Lógica compartida con subir.html — ver js/upload.js
+  initUploadFlow({
+    buttonId: 'upload-btn',
+    inputId: 'upload-input',
+    labelId: 'upload-btn-label',
+    isActive: () => uploadActive,
+    lockedMessage: '¡Esta sección se activará el día de la boda (31 de julio de 2027)! Guardad vuestras fotos y compartidlas con nosotros ese día. 💍'
   });
 
   // ── AUDIO / MÚSICA AMBIENTAL ───────────────────────
