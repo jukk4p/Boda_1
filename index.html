@@ -185,70 +185,118 @@
       radial-gradient(ellipse 65% 50% at 50% 40%, rgba(201,160,99,0.28) 0%, transparent 68%),
       radial-gradient(ellipse 120% 90% at 50% 105%, rgba(45,84,66,0.55) 0%, transparent 62%),
       linear-gradient(160deg, #12281e 0%, #1a382b 55%, #0c1b14 100%);
-    transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.15s, visibility 0.9s 0.15s;
+    transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.15s, visibility 1.2s 0.15s;
     perspective: 1400px;
   }
   .gate.closed { opacity: 0; visibility: hidden; pointer-events: none; }
   .envelope-card {
     background: var(--bg-cream);
     border: 1px solid var(--gold);
-    border-radius: 24px;
-    padding: 2.8rem 2rem 2.6rem;
+    border-radius: 20px;
+    padding: 1.5rem 1.6rem 1.4rem;
     text-align: center;
-    max-width: 360px; width: 90%;
+    max-width: 480px; width: 95%;
     box-shadow:
       0 35px 80px rgba(0,0,0,0.5),
       0 10px 28px rgba(0,0,0,0.3),
       inset 0 0 0 1px rgba(201,160,99,0.3);
     position: relative;
     overflow: hidden;
+    perspective: 700px;
     transform-style: preserve-3d;
     transform: rotateX(0) rotateY(0) scale(1) translateZ(0);
-    transition: transform 0.85s cubic-bezier(0.55, 0, 0.1, 1);
+    transition: transform 1.1s cubic-bezier(0.55, 0, 0.1, 1);
     will-change: transform;
   }
+  .envelope-card.opening { overflow: visible; }
   .envelope-card::before {
     content: '';
     position: absolute; inset: 9px;
     border: 1px solid rgba(201,160,99,0.4);
     border-radius: 17px;
     pointer-events: none;
+    z-index: 2;
   }
   .gate.closed .envelope-card {
     transform: rotateX(18deg) rotateY(-28deg) scale(0.62) translateZ(-260px);
   }
+
+  /* Solapa del sobre: gran triángulo a bleed que ocupa el tercio superior de la tarjeta */
+  .envelope-flap {
+    margin: -1.5rem -1.6rem 0;
+    width: calc(100% + 3.2rem);
+    height: 72px;
+    box-sizing: border-box;
+    background:
+      radial-gradient(140% 90% at 50% 100%, rgba(158,117,59,0.22) 0%, transparent 62%),
+      linear-gradient(160deg, #fbf4e4 0%, #f3e3bf 45%, #e3c88f 100%);
+    border: 1px solid var(--gold-dark);
+    clip-path: polygon(0 0, 100% 0, 50% 100%);
+    filter: drop-shadow(0 6px 10px rgba(158,117,59,0.3));
+    transform-origin: top center;
+    transform: rotateX(0deg);
+    transition: transform 1.3s cubic-bezier(0.6, 0, 0.15, 1), opacity 0.5s ease 0.85s;
+    position: relative;
+    z-index: 1;
+  }
+  .envelope-flap::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(115deg, transparent 46%, rgba(255,255,255,0.35) 50%, transparent 54%);
+    clip-path: polygon(0 0, 100% 0, 50% 100%);
+  }
+  .envelope-card.opening .envelope-flap {
+    transform: rotateX(-165deg);
+    opacity: 0;
+  }
+  .envelope-card .wax-seal {
+    position: relative;
+    z-index: 3;
+    margin-top: 6px;
+  }
+  .envelope-card.opening .wax-seal {
+    animation: sealBreak 0.7s ease forwards;
+  }
+  @keyframes sealBreak {
+    0% { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(-6px) scale(0.72) rotate(-8deg); opacity: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .envelope-flap, .envelope-card.opening .envelope-flap { transition: none !important; }
+    .envelope-card.opening .wax-seal { animation: none !important; }
+  }
   .gate-kicker {
     font-family: 'Montserrat', sans-serif;
-    font-size: 0.64rem;
+    font-size: 0.58rem;
     font-weight: 600;
-    letter-spacing: 0.28em;
+    letter-spacing: 0.24em;
     color: var(--gold-dark);
     text-transform: uppercase;
-    margin-bottom: 1.4rem;
+    margin-bottom: 0.5rem;
   }
   .wax-seal {
-    width: 150px; height: 150px;
+    width: 64px; height: 64px;
     display: block;
-    margin: 0 auto 1.2rem;
-    filter: drop-shadow(0 10px 20px rgba(158, 117, 59, 0.35));
+    margin: 0 auto 0.5rem;
+    filter: drop-shadow(0 6px 12px rgba(158, 117, 59, 0.35));
     animation: sealFloat 4s ease-in-out infinite;
   }
-  @keyframes sealFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+  @keyframes sealFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
 
   .gate-names {
     font-family: 'Cinzel', serif;
-    font-size: 2rem;
+    font-size: 1.4rem;
     letter-spacing: 0.05em;
     background: linear-gradient(120deg, #9e773b 0%, #e2c290 35%, #c9a063 55%, #e2c290 75%, #9e773b 100%);
     -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: var(--emerald);
   }
   .gate-sub {
     font-family: 'Montserrat', sans-serif;
-    font-size: 0.72rem;
-    letter-spacing: 0.15em;
+    font-size: 0.64rem;
+    letter-spacing: 0.13em;
     color: var(--muted-text);
     text-transform: uppercase;
-    margin: 0.5rem 0 0;
+    margin: 0.25rem 0 0;
   }
   .btn-gold {
     display: inline-flex; align-items: center; justify-content: center; gap: 0.6rem;
@@ -635,8 +683,8 @@
   .btn-whatsapp:hover::before { width: 6px; }
   .btn-whatsapp:hover {
     transform: translateY(-3px);
-    box-shadow: 0 14px 36px rgba(37, 211, 102, 0.2);
-    border-color: rgba(37, 211, 102, 0.5);
+    box-shadow: var(--shadow-hover);
+    border-color: var(--gold);
     background: var(--bg-cream);
   }
   .btn-whatsapp:active { transform: translateY(-1px) scale(0.98); }
@@ -721,7 +769,7 @@
   .floral.bl { bottom: -8px; left: -10px; transform: scaleY(-1); }
   .floral.br { bottom: -8px; right: -10px; transform: scale(-1, -1); }
   .app > .floral { width: 150px; opacity: 0.3; }
-  .envelope-card .floral { width: 96px; opacity: 0.45; color: var(--gold-dark); }
+  .envelope-card .floral { width: 52px; opacity: 0.4; color: var(--gold-dark); }
   .card-premium .floral { width: 92px; opacity: 0.28; }
 
   /* ── PETALS FLOATING ──────────────────────────────── */
@@ -779,12 +827,13 @@
       <circle cx="54" cy="13" r="2.2" fill="currentColor" fill-opacity=".5"/>
       <circle cx="70" cy="12" r="2" fill="currentColor" fill-opacity=".4"/>
     </svg>
-    <p class="gate-kicker">Bienvenidos a nuestra boda</p>
+    <div class="envelope-flap"></div>
     <img class="wax-seal" src="img/monogram.png" alt="Monograma Gloria &amp; José">
+    <p class="gate-kicker">Bienvenidos a nuestra boda</p>
     <p class="gate-names">Gloria & José</p>
     <p class="gate-sub">Nos casamos • 31 de Julio de 2027</p>
-    <div class="divider-gold" style="margin-bottom:1.6rem"><span class="line"></span><span class="icon">♦</span><span class="line"></span></div>
-    <button class="btn-gold" id="open-btn" onclick="openInvitation()">
+    <div class="divider-gold" style="margin:0.6rem auto 0.8rem"><span class="line"></span><span class="icon">♦</span><span class="line"></span></div>
+    <button class="btn-gold" id="open-btn" onclick="openInvitation()" style="padding:0.58rem 1.3rem; font-size:0.62rem;">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg> Abrir Invitación
     </button>
   </div>
@@ -1061,7 +1110,8 @@
         </div>
       </div>
 
-      <div class="gallery-grid">
+      <!-- Galería oculta: fotos actuales son placeholders, pendiente de fotos reales -->
+      <div class="gallery-grid" style="display:none;">
         <div class="gallery-item" onclick="openLightbox('img/pro_photo_1.jpg')">
           <img src="img/pro_photo_1.jpg" alt="Ramo de novia">
         </div>
@@ -1363,27 +1413,41 @@
 <script src="js/upload.js"></script>
 <script>
   // ── PANTALLA DE APERTURA ───────────────────────────
-  function openInvitation() {
-    document.getElementById('gate').classList.add('closed');
-    document.body.style.overflow = '';
+  function openInvitation(skipAnimation) {
+    const gate = document.getElementById('gate');
+    const card = gate.querySelector('.envelope-card');
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    if (location.hash) {
-      try {
-        const t = document.querySelector(location.hash);
-        if (t) setTimeout(() => t.scrollIntoView({ behavior: 'smooth' }), 300);
-      } catch (e) { /* hash no es un selector válido, ignorar */ }
-    }
+    const finish = () => {
+      gate.classList.add('closed');
+      document.body.style.overflow = '';
 
-    const bgMusic = document.getElementById('bg-music');
-    if (bgMusic && musicOn) {
-      bgMusic.play().catch(e => console.log('Autoplay audio:', e));
+      if (location.hash) {
+        try {
+          const t = document.querySelector(location.hash);
+          if (t) setTimeout(() => t.scrollIntoView({ behavior: 'smooth' }), 300);
+        } catch (e) { /* hash no es un selector válido, ignorar */ }
+      }
+
+      const bgMusic = document.getElementById('bg-music');
+      if (bgMusic && musicOn) {
+        bgMusic.play().catch(e => console.log('Autoplay audio:', e));
+      }
+    };
+
+    if (skipAnimation || reduceMotion) {
+      finish();
+    } else {
+      // Abre la solapa del sobre (como un sobre real) antes de revelar la invitación.
+      card.classList.add('opening');
+      setTimeout(finish, 1450);
     }
   }
 
   // Si se llega desde subir.html (?open=1), saltar la portada y abrir directo.
   window.addEventListener('DOMContentLoaded', () => {
     if (new URLSearchParams(location.search).has('open')) {
-      openInvitation();
+      openInvitation(true);
     }
   });
   document.body.style.overflow = 'hidden';
