@@ -249,21 +249,53 @@
     transform: rotateX(-165deg);
     opacity: 0;
   }
-  .envelope-card .wax-seal {
+  /* Escenario apilado: la miniatura del sello (sobre cerrado) y la info completa
+     (revelada al abrir) ocupan el mismo hueco, una encima de otra. */
+  .envelope-stage {
     position: relative;
-    z-index: 3;
-    margin-top: 6px;
+    min-height: 150px;
+    margin-top: 4px;
   }
-  .envelope-card.opening .wax-seal {
+  .envelope-teaser, .envelope-content {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .envelope-teaser {
+    opacity: 1;
+    transition: opacity 0.4s ease;
+  }
+  .envelope-card.opening .envelope-teaser { opacity: 0; }
+  .envelope-seal-mini {
+    width: 42px; height: 42px;
+    display: block;
+    margin: 0 auto 0.5rem;
+    filter: drop-shadow(0 6px 12px rgba(158, 117, 59, 0.35));
+    animation: sealFloat 4s ease-in-out infinite;
+  }
+  .envelope-card.opening .envelope-seal-mini {
     animation: sealBreak 0.7s ease forwards;
   }
+  @keyframes sealFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
   @keyframes sealBreak {
     0% { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; }
     100% { transform: translateY(-6px) scale(0.72) rotate(-8deg); opacity: 0; }
   }
+  .envelope-label {
+    font-family: 'Cinzel', serif;
+    font-size: 0.92rem;
+    letter-spacing: 0.03em;
+    color: var(--emerald);
+  }
+  .envelope-content {
+    opacity: 0;
+    transform: scale(0.92);
+    transition: opacity 1.3s ease 0.75s, transform 1.3s cubic-bezier(0.2, 0.8, 0.2, 1) 0.75s;
+  }
+  .envelope-card.opening .envelope-content { opacity: 1; transform: scale(1); }
   @media (prefers-reduced-motion: reduce) {
     .envelope-flap, .envelope-card.opening .envelope-flap { transition: none !important; }
-    .envelope-card.opening .wax-seal { animation: none !important; }
+    .envelope-teaser, .envelope-content { transition: none !important; }
+    .envelope-card.opening .envelope-seal-mini { animation: none !important; }
   }
   .gate-kicker {
     font-family: 'Montserrat', sans-serif;
@@ -279,10 +311,7 @@
     display: block;
     margin: 0 auto 0.5rem;
     filter: drop-shadow(0 6px 12px rgba(158, 117, 59, 0.35));
-    animation: sealFloat 4s ease-in-out infinite;
   }
-  @keyframes sealFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
-
   .gate-names {
     font-family: 'Cinzel', serif;
     font-size: 1.4rem;
@@ -335,6 +364,8 @@
   }
   .btn-gold.is-disabled::after { display: none; }
   .btn-gold.is-disabled:hover { transform: none; box-shadow: none; color: #f1ede3; }
+  .envelope-card.opening #open-btn,
+  .envelope-card.opening .divider-gold { opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
 
   .qr-wrap { position: relative; }
   .qr-lock-overlay {
@@ -828,10 +859,18 @@
       <circle cx="70" cy="12" r="2" fill="currentColor" fill-opacity=".4"/>
     </svg>
     <div class="envelope-flap"></div>
-    <img class="wax-seal" src="img/monogram.png" alt="Monograma Gloria &amp; José">
-    <p class="gate-kicker">Bienvenidos a nuestra boda</p>
-    <p class="gate-names">Gloria & José</p>
-    <p class="gate-sub">Nos casamos • 31 de Julio de 2027</p>
+    <div class="envelope-stage">
+      <div class="envelope-teaser">
+        <img class="envelope-seal-mini" src="img/monogram.png" alt="Monograma Gloria &amp; José">
+        <p class="envelope-label">Gloria &amp; José</p>
+      </div>
+      <div class="envelope-content">
+        <p class="gate-kicker">Bienvenidos a nuestra boda</p>
+        <img class="wax-seal" src="img/monogram.png" alt="Monograma Gloria &amp; José">
+        <p class="gate-names">Gloria & José</p>
+        <p class="gate-sub">Nos casamos • 31 de Julio de 2027</p>
+      </div>
+    </div>
     <div class="divider-gold" style="margin:0.6rem auto 0.8rem"><span class="line"></span><span class="icon">♦</span><span class="line"></span></div>
     <button class="btn-gold" id="open-btn" onclick="openInvitation()" style="padding:0.58rem 1.3rem; font-size:0.62rem;">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg> Abrir Invitación
@@ -1438,9 +1477,10 @@
     if (skipAnimation || reduceMotion) {
       finish();
     } else {
-      // Abre la solapa del sobre (como un sobre real) antes de revelar la invitación.
+      // Abre la solapa del sobre y muestra la información completa; tras una pausa
+      // para poder leerla, se revela la invitación digital.
       card.classList.add('opening');
-      setTimeout(finish, 1450);
+      setTimeout(finish, 4300);
     }
   }
 
