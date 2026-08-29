@@ -96,3 +96,40 @@ function initRsvpForm({ formId, statusId, submitBtnId, companionsInputId, compan
     successMessage: '¡Gracias por confirmar!'
   });
 }
+
+function initAlergenosForm({ formId, statusId, submitBtnId, otrosCheckboxId, detalleFieldId }) {
+  const form = document.getElementById(formId);
+  if (!form) return;
+  const statusEl = document.getElementById(statusId);
+  const submitBtn = document.getElementById(submitBtnId);
+  const otrosCheckbox = document.getElementById(otrosCheckboxId);
+  const detalleField = document.getElementById(detalleFieldId);
+
+  function toggleDetalle() {
+    detalleField.closest('.form-field').style.display = otrosCheckbox.checked ? '' : 'none';
+  }
+  otrosCheckbox.addEventListener('change', toggleDetalle);
+  toggleDetalle();
+
+  submitJsonForm({
+    form,
+    webhookUrl: ALERGENOS_WEBHOOK_URL,
+    statusEl,
+    submitBtn,
+    validate: () => {
+      const nombre = form.querySelector('[name="nombre_persona"]').value.trim();
+      if (!nombre) return 'Por favor, indica el nombre.';
+      const tipos = Array.from(form.querySelectorAll('input[name="tipos"]:checked'));
+      if (tipos.length === 0) return 'Selecciona al menos un tipo de alergia o intolerancia.';
+      if (otrosCheckbox.checked && !detalleField.value.trim()) return 'Describe brevemente la alergia en "Otros".';
+      return '';
+    },
+    buildPayload: () => {
+      const nombre_persona = form.querySelector('[name="nombre_persona"]').value.trim();
+      const tipos = Array.from(form.querySelectorAll('input[name="tipos"]:checked')).map(c => c.value);
+      const detalle = detalleField.value.trim();
+      return { nombre_persona, tipos, detalle };
+    },
+    successMessage: '¡Gracias por avisarnos!'
+  });
+}
