@@ -10,19 +10,44 @@ En `https://n8n.ivangonzalez.cloud`: Workflows → botón "Import from File" (o
 
 ## 2. Comprobar la ruta de archivos
 
-El workflow escribe/lee en `/data/boda-rsvp.jsonl` y `/data/boda-alergenos.jsonl`
-dentro del contenedor de n8n. Si tu instalación no tiene un directorio `/data`
-persistente y escribible, cambia la ruta en los 4 nodos siguientes por una que
-sí lo sea (por ejemplo, un subdirectorio dentro del volumen de datos de n8n
-que ya uses, tipo `/home/node/.n8n/boda-rsvp.jsonl`):
+El workflow trae por defecto `/data/boda-rsvp.jsonl` y `/data/boda-alergenos.jsonl`,
+que casi seguro NO existen en tu contenedor. **En esta instancia
+(`n8n.ivangonzalez.cloud`) ya está resuelto** con la ruta real:
 
-- "Guardar RSVP" → campo `fileName`
-- "Guardar Alergias" → campo `fileName`
-- "Leer RSVP" → campo `fileSelector`
-- "Leer Alergias" → campo `fileSelector`
+```
+/home/node/.n8n/boda-datos/boda-rsvp.jsonl
+/home/node/.n8n/boda-datos/boda-alergenos.jsonl
+```
 
-Las 4 rutas deben coincidir dos a dos (la de "Guardar RSVP" con la de "Leer
-RSVP", y la de "Guardar Alergias" con la de "Leer Alergias").
+`/home/node/.n8n` es el único volumen persistente de este n8n (verificado en
+Coolify → N8N → Persistent Storages). Pero n8n bloquea por defecto que el nodo
+"Read/Write Files from Disk" escriba dentro de su propia carpeta de datos, así
+que hicieron falta dos variables de entorno nuevas en el servicio N8N de
+Coolify (Configuration → Environment Variables):
+
+- `N8N_RESTRICT_FILE_ACCESS_TO=/home/node/.n8n/boda-datos`
+- `N8N_BLOCK_FILE_ACCESS_TO_N8N_FILES=false`
+
+(hay que reiniciar el servicio tras añadirlas para que se apliquen), y crear a
+mano la carpeta antes del primer uso:
+
+```bash
+mkdir -p /home/node/.n8n/boda-datos
+```
+
+(desde Coolify → N8N → Terminal → contenedor `n8n-...`).
+
+Si en el futuro reimportas este workflow en OTRA instancia de n8n, repite este
+mismo proceso de diagnóstico: prueba a escribir con "Execute step" en el nodo
+"Guardar RSVP", y si da "not writable" en cualquier ruta que pruebes (incluso
+`/tmp`), es casi seguro esta misma protección de n8n, no un problema real de
+permisos — confírmalo con `touch /tmp/test` directamente en la terminal del
+contenedor antes de tocar nada.
+
+Los 4 nodos que deben coincidir dos a dos (mismo path exacto):
+
+- "Guardar RSVP" → campo `fileName` ←→ "Leer RSVP" → campo `fileSelector`
+- "Guardar Alergias" → campo `fileName` ←→ "Leer Alergias" → campo `fileSelector`
 
 ## 3. Crear la credencial del dashboard
 
@@ -35,9 +60,14 @@ crea una credencial nueva:
 
 Guarda y selecciona esa credencial en el nodo.
 
+*(En esta instancia ya está creada como `Boda Admin Auth`.)*
+
 ## 4. Activar el workflow
 
-Activa el toggle "Active" del workflow (arriba a la derecha).
+Publica el workflow (botón "Publish" arriba a la derecha en esta versión de
+n8n; en otras puede ser un toggle "Active").
+
+*(Ya publicado en esta instancia.)*
 
 ## 5. Probar los formularios
 
