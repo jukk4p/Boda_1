@@ -15,7 +15,7 @@
 - No se añade ningún servicio ni dependencia de terceros nueva; todo pasa por el n8n existente (`https://n8n.ivangonzalez.cloud`).
 - Persistencia en archivos `.jsonl` en disco de n8n vía nodos nativos ("Read/Write Files from Disk"), no el nodo "Data Table" (demasiado reciente para asegurar compatibilidad).
 - El formulario es el método principal en ambas secciones; se conserva un enlace de WhatsApp más pequeño como alternativa debajo de cada uno.
-- Credenciales del dashboard: usuario `gyj2027`, contraseña `HaciendaGJ-27!` (credencial Basic Auth nativa de n8n, creada a mano por el usuario — no viaja en el JSON del workflow).
+- Credenciales del dashboard: usuario `gyj2027`, contraseña elegida por el usuario al crear la credencial (credencial Basic Auth nativa de n8n, creada a mano por el usuario — no se documenta en texto plano en el repo ni viaja en el JSON del workflow).
 - Nada de esto debe sobrevivir mucho más allá de la boda (31/07/2027) — no se añade backup, migración ni escalabilidad.
 - **Nota sobre testing:** este repo es un sitio estático sin framework de tests (confirmado: no hay `package.json`, ni carpeta `tests/`). La verificación de los cambios de front-end es manual en navegador (servidor local + revisión visual/consola), siguiendo el patrón ya usado en este proyecto. La verificación del workflow de n8n es, en parte, manual por el usuario final (sin acceso a su instancia desde esta sesión); la parte automatizable (validez del JSON) sí se comprueba con un comando.
 
@@ -851,7 +851,7 @@ crea una credencial nueva:
 
 - Nombre de la credencial: `Boda Admin Auth`
 - Usuario: `gyj2027`
-- Contraseña: `HaciendaGJ-27!`
+- Contraseña: la que prefieras — elígela tú mismo al crear la credencial y guárdala en tu gestor de contraseñas (no se documenta aquí en texto plano)
 
 Guarda y selecciona esa credencial en el nodo.
 

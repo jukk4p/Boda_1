@@ -4,7 +4,7 @@
 const RSVP_WEBHOOK_URL = 'https://n8n.ivangonzalez.cloud/webhook/boda-rsvp';
 const ALERGENOS_WEBHOOK_URL = 'https://n8n.ivangonzalez.cloud/webhook/boda-alergenos';
 
-function submitJsonForm({ form, webhookUrl, statusEl, submitBtn, buildPayload, validate, successMessage }) {
+function submitJsonForm({ form, webhookUrl, statusEl, submitBtn, buildPayload, validate, successMessage, afterReset }) {
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     statusEl.textContent = '';
@@ -33,6 +33,7 @@ function submitJsonForm({ form, webhookUrl, statusEl, submitBtn, buildPayload, v
       statusEl.textContent = successMessage;
       statusEl.classList.add('form-status--success');
       form.reset();
+      if (afterReset) afterReset();
     } catch (err) {
       statusEl.textContent = 'Hubo un problema, inténtalo de nuevo o escríbenos por WhatsApp.';
       statusEl.classList.add('form-status--error');
@@ -82,6 +83,13 @@ function initRsvpForm({ formId, statusId, submitBtnId, companionsInputId, compan
     validate: () => {
       const nombre = form.querySelector('[name="nombre"]').value.trim();
       if (!nombre) return 'Por favor, indica tu nombre.';
+      const asisteRadio = form.querySelector('input[name="asiste"]:checked');
+      const asiste = asisteRadio ? asisteRadio.value === 'si' : false;
+      if (asiste) {
+        const blanks = Array.from(companionsContainer.querySelectorAll('.companion-name-input'))
+          .some(i => !i.value.trim());
+        if (blanks) return 'Indica el nombre de cada acompañante.';
+      }
       return '';
     },
     buildPayload: () => {
@@ -93,7 +101,8 @@ function initRsvpForm({ formId, statusId, submitBtnId, companionsInputId, compan
         .filter(Boolean);
       return { nombre, asiste, acompanantes, nombres_acompanantes: nombresAcompanantes };
     },
-    successMessage: '¡Gracias por confirmar!'
+    successMessage: '¡Gracias por confirmar!',
+    afterReset: renderCompanionFields
   });
 }
 
@@ -130,6 +139,7 @@ function initAlergenosForm({ formId, statusId, submitBtnId, otrosCheckboxId, det
       const detalle = detalleField.value.trim();
       return { nombre_persona, tipos, detalle };
     },
-    successMessage: '¡Gracias por avisarnos!'
+    successMessage: '¡Gracias por avisarnos!',
+    afterReset: toggleDetalle
   });
 }

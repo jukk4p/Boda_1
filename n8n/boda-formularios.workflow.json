@@ -6,13 +6,18 @@
         "httpMethod": "POST",
         "path": "boda-rsvp",
         "responseMode": "responseNode",
-        "options": {}
+        "options": {
+          "allowedOrigins": "*"
+        }
       },
       "id": "a1b2c3d4-0001-4000-8000-000000000001",
       "name": "Webhook RSVP",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [250, 100],
+      "position": [
+        250,
+        100
+      ],
       "webhookId": "a1b2c3d4-0001-4000-8000-000000000001"
     },
     {
@@ -25,33 +30,47 @@
       "name": "Preparar Línea RSVP",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [500, 100]
+      "position": [
+        500,
+        100
+      ]
     },
     {
       "parameters": {
         "mode": "jsonToBinary",
         "convertAllData": false,
         "sourceKey": "line",
-        "options": {}
+        "options": {
+          "useRawData": true,
+          "encoding": "utf8"
+        }
       },
       "id": "a1b2c3d4-0001-4000-8000-000000000003",
       "name": "JSON a Binario RSVP",
       "type": "n8n-nodes-base.moveBinaryData",
       "typeVersion": 1,
-      "position": [750, 100]
+      "position": [
+        750,
+        100
+      ]
     },
     {
       "parameters": {
         "operation": "write",
         "fileName": "/data/boda-rsvp.jsonl",
         "dataPropertyName": "data",
-        "options": { "append": true }
+        "options": {
+          "append": true
+        }
       },
       "id": "a1b2c3d4-0001-4000-8000-000000000004",
       "name": "Guardar RSVP",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1,
-      "position": [1000, 100]
+      "position": [
+        1000,
+        100
+      ]
     },
     {
       "parameters": {
@@ -63,20 +82,28 @@
       "name": "Responder RSVP",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [1250, 100]
+      "position": [
+        1250,
+        100
+      ]
     },
     {
       "parameters": {
         "httpMethod": "POST",
         "path": "boda-alergenos",
         "responseMode": "responseNode",
-        "options": {}
+        "options": {
+          "allowedOrigins": "*"
+        }
       },
       "id": "a1b2c3d4-0002-4000-8000-000000000001",
       "name": "Webhook Alergias",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [250, 300],
+      "position": [
+        250,
+        300
+      ],
       "webhookId": "a1b2c3d4-0002-4000-8000-000000000001"
     },
     {
@@ -89,33 +116,47 @@
       "name": "Preparar Línea Alergias",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [500, 300]
+      "position": [
+        500,
+        300
+      ]
     },
     {
       "parameters": {
         "mode": "jsonToBinary",
         "convertAllData": false,
         "sourceKey": "line",
-        "options": {}
+        "options": {
+          "useRawData": true,
+          "encoding": "utf8"
+        }
       },
       "id": "a1b2c3d4-0002-4000-8000-000000000003",
       "name": "JSON a Binario Alergias",
       "type": "n8n-nodes-base.moveBinaryData",
       "typeVersion": 1,
-      "position": [750, 300]
+      "position": [
+        750,
+        300
+      ]
     },
     {
       "parameters": {
         "operation": "write",
         "fileName": "/data/boda-alergenos.jsonl",
         "dataPropertyName": "data",
-        "options": { "append": true }
+        "options": {
+          "append": true
+        }
       },
       "id": "a1b2c3d4-0002-4000-8000-000000000004",
       "name": "Guardar Alergias",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1,
-      "position": [1000, 300]
+      "position": [
+        1000,
+        300
+      ]
     },
     {
       "parameters": {
@@ -127,7 +168,10 @@
       "name": "Responder Alergias",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [1250, 300]
+      "position": [
+        1250,
+        300
+      ]
     },
     {
       "parameters": {
@@ -141,7 +185,10 @@
       "name": "Webhook Admin",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [250, 550],
+      "position": [
+        250,
+        550
+      ],
       "webhookId": "a1b2c3d4-0003-4000-8000-000000000001"
     },
     {
@@ -154,7 +201,10 @@
       "name": "Leer RSVP",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1,
-      "position": [500, 480],
+      "position": [
+        500,
+        480
+      ],
       "continueOnFail": true
     },
     {
@@ -167,20 +217,26 @@
       "name": "Leer Alergias",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1,
-      "position": [500, 620],
+      "position": [
+        500,
+        620
+      ],
       "continueOnFail": true
     },
     {
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "function decodeBinaryText(nodeName) {\n  try {\n    const item = $(nodeName).item;\n    if (!item || !item.binary || !item.binary.data) return '';\n    return Buffer.from(item.binary.data.data, 'base64').toString('utf-8');\n  } catch (e) {\n    return '';\n  }\n}\n\nfunction parseJsonl(text) {\n  return text.split('\\n').map(l => l.trim()).filter(Boolean).map(l => {\n    try { return JSON.parse(l); } catch (e) { return null; }\n  }).filter(Boolean);\n}\n\nfunction escapeHtml(str) {\n  return String(str).replace(/[&<>\"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',\"'\":'&#39;'}[c]));\n}\n\nconst rsvp = parseJsonl(decodeBinaryText('Leer RSVP'));\nconst alergenos = parseJsonl(decodeBinaryText('Leer Alergias'));\n\nconst rsvpRows = rsvp.map(r => `\n  <tr>\n    <td>${escapeHtml(r.timestamp || '')}</td>\n    <td>${escapeHtml(r.nombre || '')}</td>\n    <td>${r.asiste ? 'Sí' : 'No'}</td>\n    <td>${escapeHtml(r.acompanantes ?? 0)}</td>\n    <td>${escapeHtml((r.nombres_acompanantes || []).join(', '))}</td>\n  </tr>`).join('');\n\nconst alergenosRows = alergenos.map(a => `\n  <tr>\n    <td>${escapeHtml(a.timestamp || '')}</td>\n    <td>${escapeHtml(a.nombre_persona || '')}</td>\n    <td>${escapeHtml((a.tipos || []).join(', '))}</td>\n    <td>${escapeHtml(a.detalle || '')}</td>\n  </tr>`).join('');\n\nconst html = `<!DOCTYPE html>\n<html lang=\"es\">\n<head>\n<meta charset=\"UTF-8\">\n<title>Dashboard · Boda Gloria y José</title>\n<style>\n  body { font-family: Arial, sans-serif; background: #ebe6da; color: #231f1a; padding: 2rem; }\n  h1 { font-family: Georgia, serif; color: #1a382b; }\n  h2 { color: #9e773b; margin-top: 2.5rem; }\n  table { width: 100%; border-collapse: collapse; background: #fbf9f4; border-radius: 10px; overflow: hidden; }\n  th, td { padding: 0.6rem 0.9rem; border-bottom: 1px solid rgba(201,160,99,0.35); text-align: left; font-size: 0.9rem; }\n  th { background: #1a382b; color: #e2c290; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; }\n  tr:last-child td { border-bottom: none; }\n</style>\n</head>\n<body>\n  <h1>Gloria &amp; José — Dashboard</h1>\n\n  <h2>Confirmaciones de asistencia (${rsvp.length})</h2>\n  <table>\n    <thead><tr><th>Fecha</th><th>Nombre</th><th>Asiste</th><th>Acompañantes</th><th>Nombres acompañantes</th></tr></thead>\n    <tbody>${rsvpRows || '<tr><td colspan=\"5\">Sin confirmaciones todavía.</td></tr>'}</tbody>\n  </table>\n\n  <h2>Alergias e intolerancias (${alergenos.length})</h2>\n  <table>\n    <thead><tr><th>Fecha</th><th>Persona</th><th>Tipos</th><th>Detalle</th></tr></thead>\n    <tbody>${alergenosRows || '<tr><td colspan=\"4\">Sin avisos todavía.</td></tr>'}</tbody>\n  </table>\n</body>\n</html>`;\n\nreturn [{ json: { html } }];"
+        "jsCode": "function readNodeText(nodeName) {\n  const item = $(nodeName).first();\n  if (!item) return { text: '', error: 'nodo no ejecutado' };\n  if (item.json && item.json.error) return { text: '', error: String(item.json.error) };\n  if (!item.binary || !item.binary.data) return { text: '', error: null };\n  try {\n    return { text: Buffer.from(item.binary.data.data, 'base64').toString('utf-8'), error: null };\n  } catch (e) {\n    return { text: '', error: e.message };\n  }\n}\n\nfunction parseJsonl(text) {\n  return text.split('\\n').map(l => l.trim()).filter(Boolean).map(l => {\n    try { return JSON.parse(l); } catch (e) { return null; }\n  }).filter(Boolean);\n}\n\nfunction escapeHtml(str) {\n  return String(str).replace(/[&<>\"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',\"'\":'&#39;'}[c]));\n}\n\nconst rsvpRead = readNodeText('Leer RSVP');\nconst alergenosRead = readNodeText('Leer Alergias');\nconst rsvp = parseJsonl(rsvpRead.text);\nconst alergenos = parseJsonl(alergenosRead.text);\n\nconst rsvpRows = rsvp.map(r => `\n  <tr>\n    <td>${escapeHtml(r.timestamp || '')}</td>\n    <td>${escapeHtml(r.nombre || '')}</td>\n    <td>${r.asiste ? 'Sí' : 'No'}</td>\n    <td>${escapeHtml(r.acompanantes ?? 0)}</td>\n    <td>${escapeHtml((r.nombres_acompanantes || []).join(', '))}</td>\n  </tr>`).join('');\n\nconst alergenosRows = alergenos.map(a => `\n  <tr>\n    <td>${escapeHtml(a.timestamp || '')}</td>\n    <td>${escapeHtml(a.nombre_persona || '')}</td>\n    <td>${escapeHtml((a.tipos || []).join(', '))}</td>\n    <td>${escapeHtml(a.detalle || '')}</td>\n  </tr>`).join('');\n\nconst rsvpEmptyMessage = rsvpRead.error ? ('No se pudo leer boda-rsvp.jsonl (' + escapeHtml(rsvpRead.error) + ').') : 'Sin confirmaciones todavía.';\nconst alergenosEmptyMessage = alergenosRead.error ? ('No se pudo leer boda-alergenos.jsonl (' + escapeHtml(alergenosRead.error) + ').') : 'Sin avisos todavía.';\n\nconst html = `<!DOCTYPE html>\n<html lang=\"es\">\n<head>\n<meta charset=\"UTF-8\">\n<title>Dashboard · Boda Gloria y José</title>\n<style>\n  body { font-family: Arial, sans-serif; background: #ebe6da; color: #231f1a; padding: 2rem; }\n  h1 { font-family: Georgia, serif; color: #1a382b; }\n  h2 { color: #9e773b; margin-top: 2.5rem; }\n  table { width: 100%; border-collapse: collapse; background: #fbf9f4; border-radius: 10px; overflow: hidden; }\n  th, td { padding: 0.6rem 0.9rem; border-bottom: 1px solid rgba(201,160,99,0.35); text-align: left; font-size: 0.9rem; }\n  th { background: #1a382b; color: #e2c290; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; }\n  tr:last-child td { border-bottom: none; }\n</style>\n</head>\n<body>\n  <h1>Gloria &amp; José — Dashboard</h1>\n\n  <h2>Confirmaciones de asistencia (${rsvp.length})</h2>\n  <table>\n    <thead><tr><th>Fecha</th><th>Nombre</th><th>Asiste</th><th>Acompañantes</th><th>Nombres acompañantes</th></tr></thead>\n    <tbody>${rsvpRows || '<tr><td colspan=\"5\">' + rsvpEmptyMessage + '</td></tr>'}</tbody>\n  </table>\n\n  <h2>Alergias e intolerancias (${alergenos.length})</h2>\n  <table>\n    <thead><tr><th>Fecha</th><th>Persona</th><th>Tipos</th><th>Detalle</th></tr></thead>\n    <tbody>${alergenosRows || '<tr><td colspan=\"4\">' + alergenosEmptyMessage + '</td></tr>'}</tbody>\n  </table>\n</body>\n</html>`;\n\nreturn [{ json: { html } }];"
       },
       "id": "a1b2c3d4-0003-4000-8000-000000000004",
       "name": "Generar Dashboard HTML",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [750, 550]
+      "position": [
+        750,
+        550
+      ]
     },
     {
       "parameters": {
@@ -189,7 +245,10 @@
         "options": {
           "responseHeaders": {
             "entries": [
-              { "name": "Content-Type", "value": "text/html; charset=utf-8" }
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              }
             ]
           }
         }
@@ -198,31 +257,149 @@
       "name": "Responder Admin",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [1000, 550]
+      "position": [
+        1000,
+        550
+      ]
     }
   ],
   "connections": {
-    "Webhook RSVP": { "main": [[{ "node": "Preparar Línea RSVP", "type": "main", "index": 0 }]] },
-    "Preparar Línea RSVP": { "main": [[{ "node": "JSON a Binario RSVP", "type": "main", "index": 0 }]] },
-    "JSON a Binario RSVP": { "main": [[{ "node": "Guardar RSVP", "type": "main", "index": 0 }]] },
-    "Guardar RSVP": { "main": [[{ "node": "Responder RSVP", "type": "main", "index": 0 }]] },
-
-    "Webhook Alergias": { "main": [[{ "node": "Preparar Línea Alergias", "type": "main", "index": 0 }]] },
-    "Preparar Línea Alergias": { "main": [[{ "node": "JSON a Binario Alergias", "type": "main", "index": 0 }]] },
-    "JSON a Binario Alergias": { "main": [[{ "node": "Guardar Alergias", "type": "main", "index": 0 }]] },
-    "Guardar Alergias": { "main": [[{ "node": "Responder Alergias", "type": "main", "index": 0 }]] },
-
-    "Webhook Admin": {
-      "main": [[
-        { "node": "Leer RSVP", "type": "main", "index": 0 },
-        { "node": "Leer Alergias", "type": "main", "index": 0 }
-      ]]
+    "Webhook RSVP": {
+      "main": [
+        [
+          {
+            "node": "Preparar Línea RSVP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
-    "Leer RSVP": { "main": [[{ "node": "Generar Dashboard HTML", "type": "main", "index": 0 }]] },
-    "Leer Alergias": { "main": [[{ "node": "Generar Dashboard HTML", "type": "main", "index": 0 }]] },
-    "Generar Dashboard HTML": { "main": [[{ "node": "Responder Admin", "type": "main", "index": 0 }]] }
+    "Preparar Línea RSVP": {
+      "main": [
+        [
+          {
+            "node": "JSON a Binario RSVP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "JSON a Binario RSVP": {
+      "main": [
+        [
+          {
+            "node": "Guardar RSVP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardar RSVP": {
+      "main": [
+        [
+          {
+            "node": "Responder RSVP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Alergias": {
+      "main": [
+        [
+          {
+            "node": "Preparar Línea Alergias",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Línea Alergias": {
+      "main": [
+        [
+          {
+            "node": "JSON a Binario Alergias",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "JSON a Binario Alergias": {
+      "main": [
+        [
+          {
+            "node": "Guardar Alergias",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardar Alergias": {
+      "main": [
+        [
+          {
+            "node": "Responder Alergias",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Admin": {
+      "main": [
+        [
+          {
+            "node": "Leer RSVP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer RSVP": {
+      "main": [
+        [
+          {
+            "node": "Leer Alergias",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer Alergias": {
+      "main": [
+        [
+          {
+            "node": "Generar Dashboard HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generar Dashboard HTML": {
+      "main": [
+        [
+          {
+            "node": "Responder Admin",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
   },
   "active": false,
-  "settings": { "executionOrder": "v1" },
+  "settings": {
+    "executionOrder": "v1"
+  },
   "pinData": {}
 }
