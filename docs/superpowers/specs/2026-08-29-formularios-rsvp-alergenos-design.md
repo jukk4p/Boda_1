@@ -13,7 +13,7 @@ Objetivo: sustituir esas dos secciones por formularios reales que guarden las re
 - **Backend**: se extiende el n8n existente con 2 webhooks POST (uno por formulario) + 1 webhook GET protegido con Basic Auth nativo de n8n para el dashboard. No se crea ningún servicio, base de datos ni cuenta nueva.
 - **Almacenamiento**: archivos `.jsonl` (una línea JSON por envío) en el disco del contenedor de n8n, escritos con el nodo nativo "Read/Write Files from Disk" (disponible en cualquier versión de n8n), en vez del nodo "Data Table" (demasiado reciente, versión de n8n del usuario desconocida).
 - **UI**: el formulario es el método principal en ambas secciones; se conserva un enlace de WhatsApp más pequeño debajo, como alternativa para quien no confíe en el formulario.
-- **Auth del dashboard**: credencial Basic Auth de n8n, usuario `gyj2027` / contraseña `HaciendaGJ-27!`, creada manualmente por el usuario en n8n (los secretos de credenciales no viajan en el JSON exportado de un workflow).
+- **Auth del dashboard**: credencial Basic Auth de n8n, usuario `gyj2027` / una contraseña elegida por el usuario al crear la credencial en n8n (no se documenta en texto plano en el repo) (los secretos de credenciales no viajan en el JSON exportado de un workflow).
 - **Entrega del workflow**: como no hay acceso directo (API/MCP) a la instancia de n8n del usuario desde esta sesión, el workflow se entrega como JSON importable manualmente en la UI de n8n, con instrucciones de verificación post-import (rutas de archivo, credencial).
 
 ## Modelo de datos
@@ -63,9 +63,9 @@ Objetivo: sustituir esas dos secciones por formularios reales que guarden las re
 
 Un único workflow con 3 ramas independientes (3 disparadores):
 
-1. **Rama RSVP**: `Webhook (POST, path=boda-rsvp)` → `Set` (añade `timestamp` con `{{$now.toISO()}}`) → `Read/Write Files from Disk` (operación *write*, modo *append*, ruta `/data/boda-rsvp.jsonl`) → `Respond to Webhook` (200, `{"ok":true}`).
+1. **Rama RSVP**: `Webhook (POST, path=boda-rsvp, CORS: Allowed Origins=*)` → `Code` (añade `timestamp`, construye la línea JSON) → `Move Binary Data` (JSON→binario, raw data) → `Read/Write Files from Disk` (operación *write*, modo *append*, ruta `/data/boda-rsvp.jsonl`) → `Respond to Webhook` (200, `{"ok":true}`).
 2. **Rama Alergias**: igual que la anterior, path `boda-alergenos`, archivo `/data/boda-alergenos.jsonl`.
-3. **Rama Admin**: `Webhook (GET, path=boda-admin, Authentication=Basic Auth, credencial "Boda Admin Auth")` → `Read/Write Files from Disk` (operación *read*, ruta `/data/boda-rsvp.jsonl`) → `Extract From File` (binario→texto) → `Set` (guarda el texto en `rsvpJsonl`) → `Read/Write Files from Disk` (read, `/data/boda-alergenos.jsonl`) → `Extract From File` → `Set` (guarda en `alergenosJsonl`) → `Code` (parsea ambos JSONL, genera HTML con dos tablas, estilo dorado/verde acorde a la web) → `Respond to Webhook` (200, `Content-Type: text/html`).
+3. **Rama Admin**: `Webhook (GET, path=boda-admin, Authentication=Basic Auth, credencial "Boda Admin Auth")` → `Read/Write Files from Disk` (read, `/data/boda-rsvp.jsonl`) → `Read/Write Files from Disk` (read, `/data/boda-alergenos.jsonl`, encadenado en serie tras el anterior) → `Code` (lee ambos vía `$('Leer RSVP')`/`$('Leer Alergias')`, decodifica el binario, parsea ambos JSONL, genera HTML con dos tablas, estilo dorado/verde acorde a la web, y muestra un aviso si la lectura de algún archivo falló) → `Respond to Webhook` (200, `Content-Type: text/html`).
 
 Nota de despliegue: `/data/` es una ruta de ejemplo — el usuario debe verificar cuál es el directorio de trabajo escribible/persistente de su contenedor de n8n (habitualmente algo bajo el volumen montado de n8n) y ajustar la ruta en los 4 nodos "Read/Write Files from Disk" tras importar.
 
