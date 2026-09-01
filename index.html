@@ -1230,6 +1230,11 @@
         </button>
         <input type="file" id="upload-input" multiple accept="image/*,video/*" style="display:none">
       </div>
+      <div style="margin-top:0.8rem;">
+        <a class="btn-gold" id="gallery-link" href="galeria.html">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M3 14l4.5-4.5a2 2 0 0 1 2.8 0L15 14"/><circle cx="9" cy="9" r="1.2"/></svg> Ver Galería
+        </a>
+      </div>
     </div>
   </div>
 
@@ -1654,10 +1659,12 @@ END:VCALENDAR`;
     const qrWrap = document.getElementById('qr-wrap');
     const btn = document.getElementById('upload-btn');
     const btnLabel = document.getElementById('upload-btn-label');
+    const galleryLink = document.getElementById('gallery-link');
     if (!uploadActive) {
       if (qrWrap) qrWrap.classList.add('is-locked');
       if (btn) btn.classList.add('is-disabled');
       if (btnLabel) btnLabel.textContent = 'Disponible el día de la boda';
+      if (galleryLink) galleryLink.classList.add('is-disabled');
     }
   })();
 

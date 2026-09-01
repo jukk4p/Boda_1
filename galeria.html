@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Galería de fotos y vídeos de la boda de Gloria y José">
+<link rel="icon" type="image/png" href="img/favicon.png">
+<title>Galería · Boda Gloria y José</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --emerald: #1a382b;
+    --emerald-dark: #12281e;
+    --gold: #c9a063;
+    --gold-light: #e2c290;
+    --gold-dark: #9e773b;
+    --bg-cream: #fbf9f4;
+    --dark-text: #231f1a;
+    --muted-text: #7a7267;
+    --border-gold: rgba(201, 160, 99, 0.35);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Montserrat', sans-serif;
+    background: #ebe6da;
+    color: var(--dark-text);
+    min-height: 100vh;
+    padding: 2rem 1.2rem 3rem;
+  }
+  .header { max-width: 720px; margin: 0 auto 1.8rem; text-align: center; }
+  h1 {
+    font-family: 'Cinzel', serif;
+    font-size: 1.5rem;
+    color: var(--emerald);
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    margin-bottom: 0.5rem;
+  }
+  .header p { font-size: 0.85rem; color: var(--muted-text); line-height: 1.6; }
+  .back-link {
+    display: inline-block;
+    margin-top: 1rem;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    color: var(--gold-dark);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.2s ease;
+  }
+  .back-link:hover { border-color: var(--gold-dark); }
+  .lock-card {
+    max-width: 420px;
+    margin: 2rem auto;
+    background: var(--bg-cream);
+    border-radius: 20px;
+    border: 1px solid var(--border-gold);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+    padding: 2.5rem 1.8rem;
+    text-align: center;
+  }
+  .lock-card p { font-size: 0.88rem; color: var(--muted-text); line-height: 1.6; }
+  .gallery-grid {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.9rem;
+  }
+  .gallery-tile {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--bg-cream);
+    border: 1px solid var(--border-gold);
+  }
+  .gallery-tile img { width: 100%; height: 100%; object-fit: cover; display: block; cursor: zoom-in; }
+  .gallery-tile iframe { width: 100%; height: 100%; border: none; display: block; }
+  .gallery-fallback-link {
+    position: absolute;
+    bottom: 0.4rem; right: 0.4rem;
+    background: rgba(26, 56, 43, 0.85);
+    color: var(--gold-light);
+    font-size: 0.62rem;
+    letter-spacing: 0.05em;
+    padding: 0.3rem 0.55rem;
+    border-radius: 20px;
+    text-decoration: none;
+  }
+  .gallery-empty, .gallery-error {
+    max-width: 420px;
+    margin: 2rem auto;
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--muted-text);
+    line-height: 1.6;
+  }
+  .gallery-error { color: var(--gold-dark); }
+  .gallery-lightbox {
+    position: fixed; inset: 0;
+    background: rgba(18, 40, 30, 0.92);
+    display: flex; align-items: center; justify-content: center;
+    padding: 2rem;
+    cursor: zoom-out;
+    z-index: 1000;
+  }
+  .gallery-lightbox img { max-width: 100%; max-height: 100%; border-radius: 8px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+</style>
+</head>
+<body>
+  <div class="header">
+    <h1>Nuestros Recuerdos</h1>
+    <p>Fotos y vídeos que vais compartiendo hoy, en directo.</p>
+    <a class="back-link" href="index.html?open=1">← Volver a la invitación</a>
+  </div>
+
+  <div class="lock-card" id="lock-card">
+    <p>La galería se activará el día de la boda (31 de julio de 2027). ¡Vuelve entonces para ver las fotos y vídeos que vayáis compartiendo!</p>
+  </div>
+
+  <div class="gallery-grid" id="gallery-grid" hidden></div>
+  <p class="gallery-empty" id="gallery-empty" hidden>Aún no hay fotos… ¡sé el primero en compartir! <a class="back-link" href="index.html?open=1#recuerdos">Subir una foto</a></p>
+  <p class="gallery-error" id="gallery-error" hidden>No se pudieron cargar las fotos, reintentando…</p>
+
+  <script src="js/gallery.js"></script>
+  <script>
+    const galleryActive = Date.now() >= new Date('2027-07-31T00:00:00').getTime();
+    document.getElementById('lock-card').hidden = galleryActive;
+    document.getElementById('gallery-grid').hidden = !galleryActive;
+    if (galleryActive) {
+      initGallery({ gridId: 'gallery-grid', emptyId: 'gallery-empty', errorId: 'gallery-error' });
+    }
+  </script>
+</body>
+</html>
