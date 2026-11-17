@@ -52,3 +52,17 @@ test('removeById returns null when the manifest does not exist yet', () => {
   const manifest = freshManifest();
   assert.strictEqual(manifest.removeById('1_a'), null);
 });
+
+test('updateById merges the patch into the matching item and persists it', () => {
+  const manifest = freshManifest();
+  manifest.appendLine({ id: '1_a', name: 'x.jpg' });
+  const updated = manifest.updateById('1_a', { backedUpAt: 123 });
+  assert.deepStrictEqual(updated, { id: '1_a', name: 'x.jpg', backedUpAt: 123 });
+  assert.deepStrictEqual(manifest.readAll(), [{ id: '1_a', name: 'x.jpg', backedUpAt: 123 }]);
+});
+
+test('updateById returns null when the id is not found', () => {
+  const manifest = freshManifest();
+  manifest.appendLine({ id: '1_a' });
+  assert.strictEqual(manifest.updateById('missing', { backedUpAt: 1 }), null);
+});

@@ -29,4 +29,22 @@ function removeById(id) {
   return removed;
 }
 
-module.exports = { appendLine, readAll, removeById };
+function updateById(id, patch) {
+  if (!fs.existsSync(paths.manifestPath())) return null;
+  const lines = fs.readFileSync(paths.manifestPath(), 'utf8').split('\n').filter(Boolean);
+  let updated = null;
+  const next = lines.map((line) => {
+    let item;
+    try { item = JSON.parse(line); } catch { return line; }
+    if (item && item.id === id) {
+      updated = { ...item, ...patch };
+      return JSON.stringify(updated);
+    }
+    return line;
+  });
+  if (!updated) return null;
+  fs.writeFileSync(paths.manifestPath(), next.join('\n') + '\n');
+  return updated;
+}
+
+module.exports = { appendLine, readAll, removeById, updateById };
