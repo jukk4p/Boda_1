@@ -30,6 +30,9 @@ const ALLOWED_FORMATS = new Set([
   'mov,mp4,m4a,3gp,3g2,mj2',    // MP4 / QuickTime .mov family (iPhone video)
   'matroska,webm',              // Matroska / WebM
   'avi',                        // AVI
+  'heic',                       // synthetic key, NOT a raw ffprobe format_name -- see
+                                 // MOV_FAMILY_FORMAT / isHeicBrand below for why HEIC/HEIF
+                                 // can't be allowlisted by format_name like the formats above
 ]);
 
 // Maps a validated ffprobe format_name to the extension we actually save
@@ -40,7 +43,73 @@ const FORMAT_TO_EXT = {
   jpeg_pipe: 'jpg',
   png_pipe: 'png',
   webp_pipe: 'webp',
+  heic: 'heic',
 };
+
+// ffmpeg demuxes HEIC/HEIF stills with the exact same ISOBMFF "mov" demuxer
+// it uses for real MP4/MOV video, so ffprobe's format_name is IDENTICAL for
+// both: confirmed against FFmpeg's own source (libavformat/mov.c,
+// release/6.1 branch -- the ffmpeg 6.x family Alpine 3.19+ ships), where
+// `ff_mov_demuxer.name` is literally the string below, with no separate
+// heif/heic token. (An older, non-mainline ffmpeg fork once appended
+// ",heif,heic" to this name, but a 2017 ffmpeg-devel patch proposing that for
+// mainline was explicitly rejected by a maintainer, so Alpine's ffmpeg does
+// not have it.) Because both ALLOWED_FORMATS and VIDEO_FORMAT_TO_EXT already
+// key off this exact string for genuine video, detectAndValidateFormat can't
+// just add a HEIC format_name to FORMAT_TO_EXT -- that would make the same
+// key mean "treat as heic photo" and "treat as mov video" at once, letting a
+// guest-mislabeled MP4 (sent with an image/* mimetype) sail through
+// processPhoto.js's content check. Instead it's disambiguated below via the
+// ftyp box's major_brand/compatible_brands tags (isHeicBrand), and only a
+// confirmed HEIC/HEIF brand match gets remapped to the synthetic 'heic' key.
+const MOV_FAMILY_FORMAT = 'mov,mp4,m4a,3gp,3g2,mj2';
+
+// ISOBMFF "ftyp" box brand codes that identify real HEIC/HEIF image content.
+// Still-image brands (heic/heix/heim/heis, mif1) per IANA's media type
+// registrations for image/heic and image/heif:
+//   https://www.iana.org/assignments/media-types/image/heic
+//   https://www.iana.org/assignments/media-types/image/heif
+// Image-SEQUENCE brands (hevc/hevx, msf1) -- e.g. iPhone "Live Photo"-style
+// HEIC bursts -- per the MP4 Registration Authority brand registry:
+//   https://mp4ra.org/registered-types/brands
+// verificado por investigación (registros IANA/MP4RA), no por build real
+// contra un .heic de iPhone (sin Docker en este entorno) — confirmar contra
+// una imagen real antes de producción.
+const HEIC_FAMILY_BRANDS = new Set(['heic', 'heix', 'heim', 'heis', 'mif1', 'hevc', 'hevx', 'msf1']);
+
+// Pure, synchronous: does this ftyp major_brand/compatible_brands pairing
+// identify real HEIC/HEIF content? Split out from detectAndValidateFormat so
+// it's unit-testable without spawning ffprobe or needing a real sample file.
+function isHeicBrand(majorBrand, compatibleBrands) {
+  if (typeof majorBrand === 'string' && HEIC_FAMILY_BRANDS.has(majorBrand)) {
+    return true;
+  }
+  if (typeof compatibleBrands === 'string') {
+    // compatible_brands is a run of concatenated 4-byte brand codes with no
+    // separator (e.g. "mif1heic") -- split into exact 4-char chunks instead
+    // of substring-matching, so a brand code can't false-match across two
+    // unrelated brands' byte boundary.
+    for (let i = 0; i + 4 <= compatibleBrands.length; i += 4) {
+      if (HEIC_FAMILY_BRANDS.has(compatibleBrands.slice(i, i + 4))) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+// Parses the `TAG:key=value` lines ffprobe's default writer prints for
+// `-show_entries format_tags=major_brand,compatible_brands`.
+function parseFtypBrandTags(stdout) {
+  const tags = {};
+  for (const line of stdout.split('\n')) {
+    const match = /^TAG:(major_brand|compatible_brands)=(.*)$/.exec(line.trim());
+    if (match) {
+      tags[match[1]] = match[2];
+    }
+  }
+  return tags;
+}
 
 // Same idea as FORMAT_TO_EXT but for the video-container formats in
 // ALLOWED_FORMATS — video originals are also served statically by nginx
@@ -74,11 +143,30 @@ async function detectAndValidateFormat(filePath) {
     filePath
   ]);
   // csv output quotes the field when it contains a comma (e.g. "mov,mp4,...").
-  const formatName = stdout.trim().replace(/^"(.*)"$/, '$1');
+  let formatName = stdout.trim().replace(/^"(.*)"$/, '$1');
+
+  // format_name alone can't distinguish a HEIC/HEIF photo from a real
+  // MP4/MOV video (see MOV_FAMILY_FORMAT above) -- only run the extra brand
+  // probe for that one shared format, so every other format, and every real
+  // video sharing this demuxer family, is validated exactly as before.
+  if (formatName === MOV_FAMILY_FORMAT) {
+    const { stdout: tagStdout } = await runFfprobe([
+      '-v', 'error',
+      '-protocol_whitelist', 'file',
+      '-show_entries', 'format_tags=major_brand,compatible_brands',
+      '-of', 'default=noprint_wrappers=1',
+      filePath
+    ]);
+    const { major_brand, compatible_brands } = parseFtypBrandTags(tagStdout);
+    if (isHeicBrand(major_brand, compatible_brands)) {
+      formatName = 'heic';
+    }
+  }
+
   if (!isAllowedFormat(formatName)) {
     throw new Error(`rejected upload: unrecognized or disallowed media format "${formatName}"`);
   }
   return formatName;
 }
 
-module.exports = { runCommand, runFfmpeg, runFfprobe, detectAndValidateFormat, isAllowedFormat, ALLOWED_FORMATS, FORMAT_TO_EXT, VIDEO_FORMAT_TO_EXT };
+module.exports = { runCommand, runFfmpeg, runFfprobe, detectAndValidateFormat, isAllowedFormat, isHeicBrand, ALLOWED_FORMATS, FORMAT_TO_EXT, VIDEO_FORMAT_TO_EXT };
