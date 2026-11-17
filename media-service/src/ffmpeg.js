@@ -134,6 +134,17 @@ function isAllowedFormat(formatName) {
 // auto-probing from selecting a dangerous demuxer (e.g. `concat`, which can
 // read arbitrary other local files via the already-whitelisted `file`
 // protocol even though the "network" protocol trick is blocked).
+//
+// Returns { key, demuxer } rather than a single string:
+//   - `demuxer` is ALWAYS the real, raw ffprobe-reported format_name -- this
+//     is the only value that may ever be passed to an ffmpeg/ffprobe `-f`
+//     flag (there is no such demuxer as "heic"; ffmpeg still demuxes HEIC
+//     content with the real mov-family demuxer, so forcing `-f heic` throws
+//     "Unknown input format: 'heic'").
+//   - `key` is what callers look up in FORMAT_TO_EXT/VIDEO_FORMAT_TO_EXT for
+//     extension/content-type decisions -- the synthetic 'heic' value when an
+//     HEIC/HEIF brand was matched, otherwise identical to `demuxer`, so
+//     non-HEIC behavior is byte-for-byte unchanged.
 async function detectAndValidateFormat(filePath) {
   const { stdout } = await runFfprobe([
     '-v', 'error',
@@ -143,13 +154,14 @@ async function detectAndValidateFormat(filePath) {
     filePath
   ]);
   // csv output quotes the field when it contains a comma (e.g. "mov,mp4,...").
-  let formatName = stdout.trim().replace(/^"(.*)"$/, '$1');
+  const demuxer = stdout.trim().replace(/^"(.*)"$/, '$1');
+  let key = demuxer;
 
   // format_name alone can't distinguish a HEIC/HEIF photo from a real
   // MP4/MOV video (see MOV_FAMILY_FORMAT above) -- only run the extra brand
   // probe for that one shared format, so every other format, and every real
   // video sharing this demuxer family, is validated exactly as before.
-  if (formatName === MOV_FAMILY_FORMAT) {
+  if (demuxer === MOV_FAMILY_FORMAT) {
     const { stdout: tagStdout } = await runFfprobe([
       '-v', 'error',
       '-protocol_whitelist', 'file',
@@ -159,14 +171,14 @@ async function detectAndValidateFormat(filePath) {
     ]);
     const { major_brand, compatible_brands } = parseFtypBrandTags(tagStdout);
     if (isHeicBrand(major_brand, compatible_brands)) {
-      formatName = 'heic';
+      key = 'heic';
     }
   }
 
-  if (!isAllowedFormat(formatName)) {
-    throw new Error(`rejected upload: unrecognized or disallowed media format "${formatName}"`);
+  if (!isAllowedFormat(key)) {
+    throw new Error(`rejected upload: unrecognized or disallowed media format "${key}"`);
   }
-  return formatName;
+  return { key, demuxer };
 }
 
-module.exports = { runCommand, runFfmpeg, runFfprobe, detectAndValidateFormat, isAllowedFormat, isHeicBrand, ALLOWED_FORMATS, FORMAT_TO_EXT, VIDEO_FORMAT_TO_EXT };
+module.exports = { runCommand, runFfmpeg, runFfprobe, detectAndValidateFormat, isAllowedFormat, isHeicBrand, parseFtypBrandTags, ALLOWED_FORMATS, FORMAT_TO_EXT, VIDEO_FORMAT_TO_EXT };

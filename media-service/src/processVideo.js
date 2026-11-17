@@ -6,18 +6,22 @@ async function processVideo({ id, ext }) {
   // Validate the real content-sniffed format BEFORE any other ffmpeg/ffprobe
   // call touches this untrusted file, then pin it explicitly on every call
   // below so ffmpeg never re-probes (auto-selects) the demuxer itself.
-  const format = await detectAndValidateFormat(original);
+  const { key, demuxer } = await detectAndValidateFormat(original);
   // The extension we save/serve the original under comes from the validated
   // content format, never the guest's filename — same reasoning as
   // processPhoto.js. An image format sent with a video/* mimetype passes
   // the allowlist but has no video extension: reject.
-  const safeExt = VIDEO_FORMAT_TO_EXT[format];
+  const safeExt = VIDEO_FORMAT_TO_EXT[key];
   if (!safeExt) {
-    throw new Error(`rejected upload: content format "${format}" is not a supported video type`);
+    throw new Error(`rejected upload: content format "${key}" is not a supported video type`);
   }
-  await runFfmpeg(['-y', '-protocol_whitelist', 'file', '-f', format, '-i', original, '-vframes', '1', '-q:v', '3', '-update', '1', paths.posterPath(id)]);
+  // `-f` always takes `demuxer`, the real ffprobe-reported format, never
+  // `key` -- there is no ffmpeg demuxer named "heic" (see ffmpeg.js's
+  // detectAndValidateFormat). A guest-mislabeled HEIC photo sent as video/*
+  // still gets rejected above because VIDEO_FORMAT_TO_EXT has no 'heic' entry.
+  await runFfmpeg(['-y', '-protocol_whitelist', 'file', '-f', demuxer, '-i', original, '-vframes', '1', '-q:v', '3', '-update', '1', paths.posterPath(id)]);
   await runFfmpeg([
-    '-y', '-protocol_whitelist', 'file', '-f', format, '-i', original,
+    '-y', '-protocol_whitelist', 'file', '-f', demuxer, '-i', original,
     '-c:v', 'libx264', '-profile:v', 'high', '-preset', 'veryfast', '-crf', '23',
     '-vf', "scale='min(1920,iw)':'min(1920,ih)':force_original_aspect_ratio=decrease:force_divisible_by=2,format=yuv420p",
     '-c:a', 'aac', '-b:a', '128k', '-movflags', '+faststart',

@@ -1,6 +1,12 @@
 const { test } = require('node:test');
 const assert = require('node:assert');
-const { runCommand, isAllowedFormat, isHeicBrand, ALLOWED_FORMATS, FORMAT_TO_EXT, VIDEO_FORMAT_TO_EXT } = require('../src/ffmpeg');
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
+const {
+  runCommand, isAllowedFormat, isHeicBrand, parseFtypBrandTags, detectAndValidateFormat,
+  ALLOWED_FORMATS, FORMAT_TO_EXT, VIDEO_FORMAT_TO_EXT
+} = require('../src/ffmpeg');
 
 test('runCommand resolves with stdout on success', async () => {
   const { stdout } = await runCommand('node', ['-e', 'process.stdout.write("hello")']);
@@ -102,4 +108,115 @@ test('ALLOWED_FORMATS/FORMAT_TO_EXT accept the synthetic "heic" key detectAndVal
 
 test('VIDEO_FORMAT_TO_EXT never gets a heic entry (no collision with the photo pipeline)', () => {
   assert.strictEqual(VIDEO_FORMAT_TO_EXT.heic, undefined);
+});
+
+test('parseFtypBrandTags parses ffprobe\'s "TAG:key=value" output lines for major_brand/compatible_brands', () => {
+  const stdout = 'TAG:major_brand=heic\nTAG:compatible_brands=mif1heic\n';
+  assert.deepStrictEqual(parseFtypBrandTags(stdout), { major_brand: 'heic', compatible_brands: 'mif1heic' });
+});
+
+test('parseFtypBrandTags tolerates missing tags and ignores unrelated lines', () => {
+  assert.deepStrictEqual(parseFtypBrandTags(''), {});
+  assert.deepStrictEqual(parseFtypBrandTags('TAG:major_brand=isom\n'), { major_brand: 'isom' });
+  assert.deepStrictEqual(
+    parseFtypBrandTags('some unrelated line\nTAG:compatible_brands=isomiso2avc1mp41'),
+    { compatible_brands: 'isomiso2avc1mp41' }
+  );
+});
+
+// --- detectAndValidateFormat: real-file integration coverage of the { key, demuxer } remap itself ---
+//
+// These two tests exercise detectAndValidateFormat end to end against a REAL
+// ffprobe process (not a mock of isHeicBrand/parseFtypBrandTags in
+// isolation), because that's what caught the critical bug in the first
+// version of this fix: detectAndValidateFormat returned the synthetic
+// 'heic' string directly, and processPhoto.js passed it straight into
+// ffmpeg's `-f` flag -- there is no such demuxer, so every real HEIC upload
+// threw "Unknown input format: 'heic'" (reproduced locally:
+// `ffmpeg -f heic -i out.mp4 ...` -> "[in#0] Unknown input format: 'heic'").
+// The fix returns { key, demuxer } so `-f` always gets the real demuxer.
+//
+// A genuine iPhone .heic sample isn't available in this environment (no
+// Docker, no sample file). Confirmed locally that a synthetic ftyp-only stub
+// is NOT a usable substitute: `ffprobe -show_entries format_tags=...` on an
+// ftyp-only file fails with "moov atom not found" (ffprobe needs a full
+// moov tree to open the file at all, not just the ftyp box). Instead, these
+// tests generate a REAL, valid mp4 with real ffmpeg and byte-patch its ftyp
+// box's major_brand field in place (same 4-byte length, rest of the
+// container -- moov/mdat -- untouched), which produces a file real ffprobe
+// opens and demuxes normally (format_name unaffected) while reporting
+// major_brand=heic -- the exact signal isHeicBrand looks for. This exercises
+// detectAndValidateFormat's real remap logic against a real ffprobe process,
+// without needing an actual HEIC sample. verificado por investigación +
+// prueba local con ffmpeg real disponible en esta máquina (ffmpeg/ffprobe
+// 8.1, gyan.dev Windows build) -- no confirmado todavía contra un .heic real
+// de iPhone ni contra el build de ffmpeg de Alpine en el contenedor; esa
+// confirmación final sigue pendiente (ver comentario de HEIC_FAMILY_BRANDS
+// en ffmpeg.js).
+//
+// Both tests skip gracefully (not fail) if ffmpeg/ffprobe aren't on PATH, to
+// keep this suite runnable in environments without them (as the rest of
+// this file deliberately is, by only ever invoking `node` as a stand-in
+// command).
+
+async function ffmpegToolsAvailable() {
+  try {
+    await runCommand('ffprobe', ['-version']);
+    await runCommand('ffmpeg', ['-version']);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function makeTempMp4(dir) {
+  const mp4Path = path.join(dir, 'source.mp4');
+  return runCommand('ffmpeg', [
+    '-y', '-v', 'error', '-f', 'lavfi', '-i', 'color=c=red:s=16x16:d=1',
+    '-c:v', 'libx264', '-t', '1', mp4Path
+  ]).then(() => mp4Path);
+}
+
+test('detectAndValidateFormat: a real non-HEIC mp4 resolves key === demuxer === the raw format_name (unchanged behavior)', async (t) => {
+  if (!(await ffmpegToolsAvailable())) {
+    t.skip('ffmpeg/ffprobe not found on PATH in this environment');
+    return;
+  }
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ffmpeg-heic-test-'));
+  try {
+    const mp4Path = await makeTempMp4(dir);
+    const result = await detectAndValidateFormat(mp4Path);
+    assert.strictEqual(result.demuxer, 'mov,mp4,m4a,3gp,3g2,mj2');
+    assert.strictEqual(result.key, result.demuxer);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('detectAndValidateFormat: an mp4 container whose ftyp major_brand is patched to "heic" resolves key==="heic" while demuxer stays the raw mov format_name', async (t) => {
+  if (!(await ffmpegToolsAvailable())) {
+    t.skip('ffmpeg/ffprobe not found on PATH in this environment');
+    return;
+  }
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ffmpeg-heic-test-'));
+  try {
+    const mp4Path = await makeTempMp4(dir);
+    const buf = fs.readFileSync(mp4Path);
+    const majorBrandOffset = buf.indexOf('ftyp') + 4;
+    assert.strictEqual(
+      buf.toString('ascii', majorBrandOffset, majorBrandOffset + 4), 'isom',
+      'fixture assumption: this ffmpeg build writes major_brand=isom at this offset'
+    );
+    buf.write('heic', majorBrandOffset, 'ascii');
+    const heicLikePath = path.join(dir, 'patched.heic');
+    fs.writeFileSync(heicLikePath, buf);
+
+    const result = await detectAndValidateFormat(heicLikePath);
+    // -f target: must always be the real demuxer, never the synthetic key.
+    assert.strictEqual(result.demuxer, 'mov,mp4,m4a,3gp,3g2,mj2');
+    // FORMAT_TO_EXT/VIDEO_FORMAT_TO_EXT lookup target: the synthetic key.
+    assert.strictEqual(result.key, 'heic');
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
 });
