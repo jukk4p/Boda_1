@@ -9,127 +9,342 @@
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --emerald: #1a382b;
-    --emerald-dark: #12281e;
-    --gold: #c9a063;
-    --gold-light: #e2c290;
-    --gold-dark: #9e773b;
-    --bg-cream: #fbf9f4;
-    --dark-text: #231f1a;
-    --muted-text: #7a7267;
-    --border-gold: rgba(201, 160, 99, 0.35);
+    --page:       #ebe6da;
+    --paper:      #fbf9f4;
+    --ink:        #1a382b;
+    --ink-deep:   #12281e;
+    --ink-soft:   #4f6f5c;
+    --gold:       #c9a063;
+    --gold-soft:  #e2c290;
+    --gold-text:  #9e773b;
+    --charcoal:   #231f1a;
+    --muted:      #7a7267;
+    --mist:       #e8e2d3;
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { overflow-x: hidden; }
   body {
     font-family: 'Montserrat', sans-serif;
-    background: #ebe6da;
-    color: var(--dark-text);
+    background:
+      radial-gradient(ellipse 70% 40% at 50% 0%, rgba(201, 160, 99, 0.12) 0%, transparent 60%),
+      var(--page);
+    color: var(--charcoal);
     min-height: 100vh;
-    padding: 2rem 1.2rem 3rem;
+    padding: 2.4rem 1.2rem 4rem;
+    -webkit-font-smoothing: antialiased;
   }
-  .header { max-width: 720px; margin: 0 auto 1.8rem; text-align: center; }
+  .page-frame { max-width: 1100px; margin: 0 auto; }
+
+  /* ── Cabecera ── */
+  .site-header { max-width: 640px; margin: 0 auto 2.2rem; text-align: center; }
+  .header-mono {
+    width: 56px; height: 56px;
+    object-fit: cover; border-radius: 50%;
+    margin: 0 auto 0.9rem;
+    box-shadow: 0 6px 16px rgba(18,40,30,0.2), 0 0 0 1px rgba(201,160,99,0.35);
+  }
+  .eyebrow {
+    font-size: 0.68rem; font-weight: 600;
+    letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--gold-text);
+    margin-bottom: 0.6rem;
+  }
   h1 {
     font-family: 'Cinzel', serif;
-    font-size: 1.5rem;
-    color: var(--emerald);
     font-weight: 600;
+    font-size: 1.6rem;
+    color: var(--ink-deep);
     letter-spacing: 0.03em;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.7rem;
   }
-  .header p { font-size: 0.85rem; color: var(--muted-text); line-height: 1.6; }
+  .subtitle {
+    font-size: 0.86rem; color: var(--muted); line-height: 1.6;
+    display: flex; align-items: center; justify-content: center; gap: 0.45rem;
+  }
+  .live-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--gold); flex: none;
+    box-shadow: 0 0 0 0 rgba(201, 160, 99, 0.6);
+    animation: livePulse 2.2s ease-out infinite;
+  }
+  @keyframes livePulse {
+    0%   { box-shadow: 0 0 0 0 rgba(201, 160, 99, 0.55); }
+    70%  { box-shadow: 0 0 0 6px rgba(201, 160, 99, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(201, 160, 99, 0); }
+  }
   .back-link {
     display: inline-block;
-    margin-top: 1rem;
-    font-family: 'Montserrat', sans-serif;
+    margin-top: 1.1rem;
     font-size: 0.72rem;
     letter-spacing: 0.08em;
-    color: var(--gold-dark);
+    color: var(--gold-text);
     text-decoration: none;
     border-bottom: 1px solid transparent;
     transition: border-color 0.2s ease;
   }
-  .back-link:hover { border-color: var(--gold-dark); }
+  .back-link:hover { border-color: var(--gold-text); }
+
+  /* ── Tarjeta de bloqueo (antes de la boda) ── */
   .lock-card {
+    position: relative;
     max-width: 420px;
     margin: 2rem auto;
-    background: var(--bg-cream);
-    border-radius: 20px;
-    border: 1px solid var(--border-gold);
-    box-shadow: 0 20px 50px rgba(0,0,0,0.15);
-    padding: 2.5rem 1.8rem;
+    background: var(--paper);
+    border-radius: 24px;
+    border: 1px solid rgba(201, 160, 99, 0.35);
+    box-shadow: 0 20px 50px rgba(18, 40, 30, 0.15);
+    padding: 2.8rem 2rem;
     text-align: center;
+    overflow: hidden;
   }
-  .lock-card p { font-size: 0.88rem; color: var(--muted-text); line-height: 1.6; }
+  .lock-eyebrow {
+    font-size: 0.66rem; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--gold-text); margin-bottom: 0.8rem;
+  }
+  .lock-card p:not(.lock-eyebrow) { font-size: 0.9rem; color: var(--muted); line-height: 1.65; }
+
+  /* ── Pestañas Fotos / Vídeos ── */
+  .gallery-app { max-width: 1100px; margin: 0 auto; }
+  .tabs {
+    position: relative;
+    display: flex;
+    max-width: 320px;
+    margin: 0 auto 1.8rem;
+    background: var(--paper);
+    border: 1px solid rgba(201, 160, 99, 0.35);
+    border-radius: 999px;
+    padding: 4px;
+    box-shadow: 0 6px 16px rgba(18,40,30,0.08);
+  }
+  .tab {
+    position: relative;
+    z-index: 1;
+    flex: 1;
+    display: flex; align-items: center; justify-content: center; gap: 0.35rem;
+    background: none; border: none;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.72rem; font-weight: 600;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--muted);
+    padding: 0.6rem 0.5rem;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: color 0.25s ease;
+  }
+  .tab.is-active { color: var(--ink-deep); }
+  .tab-count {
+    font-size: 0.64rem; font-weight: 600;
+    padding: 0.06rem 0.4rem;
+    border-radius: 999px;
+    background: rgba(18, 40, 30, 0.08);
+    color: var(--ink-soft);
+  }
+  .tab.is-active .tab-count { background: rgba(255,255,255,0.35); color: var(--ink-deep); }
+  .tab-indicator {
+    position: absolute; top: 4px; left: 4px;
+    width: calc(50% - 4px); height: calc(100% - 8px);
+    background: linear-gradient(135deg, var(--gold-soft), var(--gold));
+    border-radius: 999px;
+    box-shadow: 0 6px 14px rgba(201, 160, 99, 0.4);
+    transition: transform 0.35s cubic-bezier(.4,0,.2,1);
+    z-index: 0;
+  }
+
+  .tab-panel { display: none; }
+  .tab-panel.is-active { display: block; }
+
+  /* ── Rejillas ── */
   .gallery-grid {
-    max-width: 1100px;
-    margin: 0 auto;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    align-items: start;
     gap: 0.9rem;
   }
+  /* auto-fit (no auto-fill): con pocos vídeos, las tarjetas se estiran para
+     llenar el ancho disponible en vez de dejar columnas vacías a la derecha. */
+  .gallery-grid.video-grid { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+
   .gallery-tile {
     position: relative;
     aspect-ratio: 1 / 1;
-    border-radius: 12px;
+    border-radius: 16px;
     overflow: hidden;
-    background: var(--bg-cream);
-    border: 1px solid var(--border-gold);
+    background: var(--paper);
+    border: 1px solid rgba(201, 160, 99, 0.3);
+    box-shadow: 0 10px 24px rgba(18, 40, 30, 0.10);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
   }
-  .gallery-tile img { width: 100%; height: 100%; object-fit: cover; display: block; cursor: zoom-in; }
-  .gallery-tile iframe { width: 100%; height: 100%; border: none; display: block; }
-  .gallery-fallback-link {
-    position: absolute;
-    bottom: 0.4rem; right: 0.4rem;
-    background: rgba(26, 56, 43, 0.85);
-    color: var(--gold-light);
-    font-size: 0.62rem;
-    letter-spacing: 0.05em;
-    padding: 0.3rem 0.55rem;
-    border-radius: 20px;
-    text-decoration: none;
+  .gallery-tile:hover { transform: translateY(-4px); box-shadow: 0 16px 32px rgba(18, 40, 30, 0.18); }
+  .gallery-tile img {
+    width: 100%; height: 100%; object-fit: cover; display: block; cursor: zoom-in;
+    transition: transform 0.5s ease;
+  }
+  .gallery-tile:hover img { transform: scale(1.07); }
+
+  .video-tile { aspect-ratio: 16 / 9; }
+  .video-tile iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: none; display: block; background: var(--ink-deep); }
+  /* Tapa (con una viñeta, no un parche brusco) y bloquea el clic del icono
+     "abrir en Drive" que dibuja el propio visor embebido, para que nunca se
+     vea ni saque al invitado de la página. */
+  .video-shield {
+    position: absolute; top: 0; right: 0; width: 64px; height: 64px; z-index: 2;
+    background: radial-gradient(circle at top right, rgba(18,40,30,0.65) 0%, rgba(18,40,30,0.32) 45%, rgba(18,40,30,0) 72%);
+  }
+
+  /* ── Esqueletos de carga ── */
+  .skeleton-tile {
+    aspect-ratio: 1 / 1;
+    border-radius: 16px;
+    background: linear-gradient(100deg, var(--mist) 28%, #fdfcf7 50%, var(--mist) 72%);
+    background-size: 220% 100%;
+    animation: shimmer 1.7s ease-in-out infinite;
+  }
+  .skeleton-tile.video-skeleton { aspect-ratio: 16 / 10; }
+  @keyframes shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* ── Estados vacío / error ── */
+  .state-block { max-width: 420px; margin: 2.5rem auto; text-align: center; }
+  .state-icon {
+    width: 46px; height: 46px; border-radius: 50%;
+    margin: 0 auto 0.9rem;
+    background: rgba(201, 160, 99, 0.16);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--gold-text);
   }
   .gallery-empty, .gallery-error {
-    max-width: 420px;
-    margin: 2rem auto;
-    text-align: center;
-    font-size: 0.9rem;
-    color: var(--muted-text);
+    font-size: 0.88rem;
+    color: var(--muted);
     line-height: 1.6;
   }
-  .gallery-error { color: var(--gold-dark); }
+  .gallery-error { color: var(--gold-text); }
+  .gallery-error .state-icon { background: rgba(158, 119, 59, 0.14); }
+
+  /* ── Lightbox ── */
   .gallery-lightbox {
     position: fixed; inset: 0;
-    background: rgba(18, 40, 30, 0.92);
+    background: rgba(12, 26, 20, 0.92);
     display: flex; align-items: center; justify-content: center;
     padding: 2rem;
     cursor: zoom-out;
     z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.25s ease;
   }
-  .gallery-lightbox img { max-width: 100%; max-height: 100%; border-radius: 8px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+  .gallery-lightbox.is-open { opacity: 1; }
+  .gallery-lightbox img {
+    max-width: 100%; max-height: 100%;
+    border-radius: 8px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    transform: scale(0.94);
+    transition: transform 0.25s ease;
+    cursor: default;
+  }
+  .gallery-lightbox.is-open img { transform: scale(1); }
+  .lightbox-close {
+    position: absolute; top: 1.1rem; right: 1.2rem;
+    width: 38px; height: 38px; border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.25);
+    color: #fbf9f4;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; line-height: 1;
+    cursor: pointer;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .live-dot, .skeleton-tile { animation: none !important; }
+    .gallery-tile, .tab-indicator, .gallery-lightbox, .gallery-lightbox img { transition: none !important; }
+  }
 </style>
 </head>
 <body>
-  <div class="header">
-    <h1>Nuestros Recuerdos</h1>
-    <p>Fotos y vídeos que vais compartiendo hoy, en directo.</p>
-    <a class="back-link" href="index.html?open=1">← Volver a la invitación</a>
-  </div>
+  <div class="page-frame">
+    <header class="site-header">
+      <img class="header-mono" src="img/monogram.png" alt="Monograma Gloria &amp; José">
+      <p class="eyebrow">Gloria &amp; José · 31 Jul 2027</p>
+      <h1>Nuestros Recuerdos</h1>
+      <p class="subtitle"><span class="live-dot" aria-hidden="true"></span>Fotos y vídeos que vais compartiendo hoy, en directo</p>
+      <a class="back-link" href="index.html?open=1">← Volver a la invitación</a>
+    </header>
 
-  <div class="lock-card" id="lock-card">
-    <p>La galería se activará el día de la boda (31 de julio de 2027). ¡Vuelve entonces para ver las fotos y vídeos que vayáis compartiendo!</p>
-  </div>
+    <div class="lock-card" id="lock-card">
+      <p class="lock-eyebrow">Próximamente</p>
+      <p>La galería se activará el día de la boda (31 de julio de 2027). ¡Vuelve entonces para ver las fotos y vídeos que vayáis compartiendo!</p>
+    </div>
 
-  <div class="gallery-grid" id="gallery-grid" hidden></div>
-  <p class="gallery-empty" id="gallery-empty" hidden>Aún no hay fotos… ¡sé el primero en compartir! <a class="back-link" href="index.html?open=1#recuerdos">Subir una foto</a></p>
-  <p class="gallery-error" id="gallery-error" hidden>No se pudieron cargar las fotos, reintentando…</p>
+    <div class="gallery-app" id="gallery-app" hidden>
+      <div class="tabs" id="tabs">
+        <button class="tab is-active" type="button" data-tab="fotos" aria-selected="true">Fotos <span class="tab-count" id="count-fotos">0</span></button>
+        <button class="tab" type="button" data-tab="videos" aria-selected="false">Vídeos <span class="tab-count" id="count-videos">0</span></button>
+        <span class="tab-indicator" id="tab-indicator" aria-hidden="true"></span>
+      </div>
+
+      <div class="state-block gallery-error" id="gallery-error" hidden>
+        <div class="state-icon" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9 2.4 18a1.6 1.6 0 0 0 1.4 2.4h16.4a1.6 1.6 0 0 0 1.4-2.4L13.7 3.9a1.6 1.6 0 0 0-2.8 0Z"/></svg>
+        </div>
+        No se pudieron cargar las fotos, reintentando…
+      </div>
+
+      <section class="tab-panel is-active" id="panel-fotos">
+        <div class="gallery-grid" id="photo-grid"></div>
+        <div class="state-block gallery-empty" id="photo-empty" hidden>
+          <div class="state-icon" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.2"/></svg>
+          </div>
+          Aún no hay fotos… ¡sé el primero en compartir! <a class="back-link" href="index.html?open=1#recuerdos">Subir una foto</a>
+        </div>
+      </section>
+
+      <section class="tab-panel" id="panel-videos" hidden>
+        <div class="gallery-grid video-grid" id="video-grid"></div>
+        <div class="state-block gallery-empty" id="video-empty" hidden>
+          <div class="state-icon" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5.5" width="14" height="13" rx="2"/><path d="M16.5 10.2 21 7v10l-4.5-3.2"/></svg>
+          </div>
+          Aún no hay vídeos… ¡sé el primero en compartir! <a class="back-link" href="index.html?open=1#recuerdos">Subir un vídeo</a>
+        </div>
+      </section>
+    </div>
+  </div>
 
   <script src="js/gallery.js"></script>
   <script>
     const galleryActive = Date.now() >= new Date('2027-07-31T00:00:00').getTime();
     document.getElementById('lock-card').hidden = galleryActive;
-    document.getElementById('gallery-grid').hidden = !galleryActive;
+    document.getElementById('gallery-app').hidden = !galleryActive;
+
     if (galleryActive) {
-      initGallery({ gridId: 'gallery-grid', emptyId: 'gallery-empty', errorId: 'gallery-error' });
+      initGallery({
+        photoGridId: 'photo-grid',
+        videoGridId: 'video-grid',
+        photoEmptyId: 'photo-empty',
+        videoEmptyId: 'video-empty',
+        errorId: 'gallery-error',
+        photoCountId: 'count-fotos',
+        videoCountId: 'count-videos'
+      });
+
+      const tabButtons = Array.from(document.querySelectorAll('.tab'));
+      const indicator = document.getElementById('tab-indicator');
+      const panels = { fotos: document.getElementById('panel-fotos'), videos: document.getElementById('panel-videos') };
+
+      tabButtons.forEach((tab, index) => {
+        tab.addEventListener('click', () => {
+          tabButtons.forEach(t => { t.classList.remove('is-active'); t.setAttribute('aria-selected', 'false'); });
+          tab.classList.add('is-active');
+          tab.setAttribute('aria-selected', 'true');
+          indicator.style.transform = `translateX(${index * 100}%)`;
+          Object.entries(panels).forEach(([key, panel]) => {
+            const active = key === tab.dataset.tab;
+            panel.hidden = !active;
+            panel.classList.toggle('is-active', active);
+          });
+        });
+      });
     }
   </script>
 </body>
