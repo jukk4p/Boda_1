@@ -82,6 +82,18 @@ function makeIncompatibleCodecFixture(dir) {
   ]);
 }
 
+// Same resolution (well under 1920px) and h264 video, but a non-aac audio
+// codec (mp3 instead of aac) -- fails the "audio already aac" half of the
+// criterion, so it must take the re-encode path even though the video
+// stream alone would qualify.
+function makeIncompatibleAudioFixture(dir) {
+  return makeFixture(dir, 'incompatible-audio.mp4', [
+    '-f', 'lavfi', '-i', 'testsrc=size=640x360:duration=1:rate=25',
+    '-f', 'lavfi', '-i', 'sine=frequency=1000:duration=1',
+    '-c:v', 'libx264', '-profile:v', 'high', '-pix_fmt', 'yuv420p', '-c:a', 'libmp3lame', '-t', '1', '-shortest'
+  ]);
+}
+
 function makeDirsFor(paths, id, ext) {
   fs.mkdirSync(path.dirname(paths.originalPath(id, ext)), { recursive: true });
   fs.mkdirSync(path.dirname(paths.posterPath(id)), { recursive: true });
@@ -176,6 +188,48 @@ test('processVideo re-encodes when the original uses a different codec than h264
       paths.videoPath(id)
     ]);
     assert.strictEqual(stdout.trim(), 'h264');
+  } finally {
+    restoreFfmpeg();
+    fs.rmSync(workDir, { recursive: true, force: true });
+    fs.rmSync(uploadDir, { recursive: true, force: true });
+  }
+});
+
+test('processVideo re-encodes when the audio codec is not aac even if the video is already h264 within 1920px', async (t) => {
+  if (!(await ffmpegToolsAvailable())) {
+    t.skip('ffmpeg/ffprobe not found on PATH in this environment');
+    return;
+  }
+  const workDir = fs.mkdtempSync(path.join(os.tmpdir(), 'processVideo-test-'));
+  const uploadDir = fs.mkdtempSync(path.join(os.tmpdir(), 'processVideo-upload-'));
+  const calls = installFfmpegSpy();
+  try {
+    const fixturePath = await makeIncompatibleAudioFixture(workDir);
+    const { paths, processVideo } = freshProcessVideo(uploadDir);
+    const id = 'incompat-audio-fixture';
+    const ext = 'mp4';
+    makeDirsFor(paths, id, ext);
+    fs.copyFileSync(fixturePath, paths.originalPath(id, ext));
+
+    await processVideo({ id, ext });
+
+    // The transcode call took the re-encode branch (libx264/-crf present,
+    // no stream copy) purely because of the audio codec -- the video
+    // stream alone (h264, 640x360) would have qualified for copy.
+    const transcodeArgs = transcodeCallArgs(calls);
+    assert.ok(transcodeArgs, 'expected a transcode runFfmpeg call');
+    assert.ok(transcodeArgs.includes('libx264'), `expected libx264 (recode flag) because the source audio is not aac, got: ${transcodeArgs.join(' ')}`);
+    assert.ok(transcodeArgs.includes('-crf'), `expected -crf (recode flag), got: ${transcodeArgs.join(' ')}`);
+    assert.ok(!transcodeArgs.includes('copy'), `expected no copy codec arg when the source audio is not aac, got: ${transcodeArgs.join(' ')}`);
+
+    // Output audio is still always re-encoded to aac regardless.
+    const { stdout } = await runCommand('ffprobe', [
+      '-v', 'error', '-select_streams', 'a:0',
+      '-show_entries', 'stream=codec_name',
+      '-of', 'csv=p=0',
+      paths.videoPath(id)
+    ]);
+    assert.strictEqual(stdout.trim(), 'aac');
   } finally {
     restoreFfmpeg();
     fs.rmSync(workDir, { recursive: true, force: true });
