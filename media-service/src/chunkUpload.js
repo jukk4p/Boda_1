@@ -5,6 +5,27 @@ const paths = require('./paths');
 const CHUNK_EXT = '.part';
 const META_FILE = 'meta.json';
 
+// uploadId becomes a single path segment under UPLOAD_ROOT/chunks/, so it must
+// not contain '/', '\', or '..' — otherwise it could resolve outside that
+// directory (path traversal). Mirrors the id-shape guard DELETE /items/:id
+// uses in server.js, but kept permissive enough for any id generator Task 7
+// ends up using (not just generateId()'s exact timestamp_hex32 shape).
+const SAFE_UPLOAD_ID = /^[A-Za-z0-9_-]+$/;
+
+function assertSafeUploadId(uploadId) {
+  if (typeof uploadId !== 'string' || !SAFE_UPLOAD_ID.test(uploadId)) {
+    throw new Error(`invalid uploadId: ${JSON.stringify(uploadId)}`);
+  }
+}
+
+// chunkIndex becomes a filename (`${chunkIndex}.part`), so it must be a
+// non-negative integer — never a string that could smuggle '/' or '..'.
+function assertSafeChunkIndex(chunkIndex) {
+  if (!Number.isInteger(chunkIndex) || chunkIndex < 0) {
+    throw new Error(`invalid chunkIndex: ${JSON.stringify(chunkIndex)}`);
+  }
+}
+
 const chunksRoot = () => path.join(paths.UPLOAD_ROOT, 'chunks');
 const sessionDir = (uploadId) => path.join(chunksRoot(), uploadId);
 const sessionMetaPath = (uploadId) => path.join(sessionDir(uploadId), META_FILE);
@@ -23,6 +44,7 @@ function readMeta(uploadId) {
 // Starts a new chunked-upload session, or returns the existing one unchanged
 // if it was already started (so a retried "start" request is a no-op).
 function startOrGetSession(uploadId, totalChunks, filename, mimetype) {
+  assertSafeUploadId(uploadId);
   const existing = readMeta(uploadId);
   if (existing) return existing;
 
@@ -35,6 +57,7 @@ function startOrGetSession(uploadId, totalChunks, filename, mimetype) {
 // Returns the chunk indices actually present on disk for this session, sorted
 // ascending, so a client can resume by asking for what's missing.
 function receivedChunks(uploadId) {
+  assertSafeUploadId(uploadId);
   const dir = sessionDir(uploadId);
   if (!fs.existsSync(dir)) return [];
   return fs.readdirSync(dir)
@@ -47,6 +70,8 @@ function receivedChunks(uploadId) {
 // Writes (or overwrites) one chunk. Re-sending the same chunkIndex just
 // replaces that chunk's file in place, so it never duplicates data.
 function writeChunk(uploadId, chunkIndex, buffer) {
+  assertSafeUploadId(uploadId);
+  assertSafeChunkIndex(chunkIndex);
   fs.mkdirSync(sessionDir(uploadId), { recursive: true });
   fs.writeFileSync(chunkPath(uploadId, chunkIndex), buffer);
 
@@ -61,6 +86,7 @@ function writeChunk(uploadId, chunkIndex, buffer) {
 // present, then deletes the session directory. Returns null while chunks
 // are still missing.
 function assembleIfComplete(uploadId) {
+  assertSafeUploadId(uploadId);
   const meta = readMeta(uploadId);
   if (!meta) return null;
 

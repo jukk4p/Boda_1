@@ -78,3 +78,31 @@ test('sweepAbandoned deletes only session directories older than maxAgeMs and re
   assert.strictEqual(fs.existsSync(oldDir), false);
   assert.strictEqual(fs.existsSync(path.join(paths.UPLOAD_ROOT, 'chunks', 'fresh-session')), true);
 });
+
+test('a path-traversal uploadId is rejected instead of resolving outside UPLOAD_ROOT/chunks', () => {
+  const chunkUpload = freshChunkUpload();
+  const paths = require('../src/paths');
+  const evilId = '../../evil';
+
+  assert.throws(() => chunkUpload.startOrGetSession(evilId, 1, 'a.jpg', 'image/jpeg'));
+  assert.throws(() => chunkUpload.writeChunk(evilId, 0, Buffer.from('A')));
+  assert.throws(() => chunkUpload.receivedChunks(evilId));
+  assert.throws(() => chunkUpload.assembleIfComplete(evilId));
+
+  // Nothing should have been created above UPLOAD_ROOT.
+  assert.strictEqual(fs.existsSync(path.join(paths.UPLOAD_ROOT, '..', '..', 'evil')), false);
+  assert.strictEqual(fs.existsSync(path.join(paths.UPLOAD_ROOT, '..', 'evil')), false);
+});
+
+test('a non-integer or negative chunkIndex is rejected by writeChunk', () => {
+  const chunkUpload = freshChunkUpload();
+  chunkUpload.startOrGetSession('up5', 2, 'a.jpg', 'image/jpeg');
+
+  assert.throws(() => chunkUpload.writeChunk('up5', -1, Buffer.from('A')));
+  assert.throws(() => chunkUpload.writeChunk('up5', 1.5, Buffer.from('A')));
+  assert.throws(() => chunkUpload.writeChunk('up5', '../../evil', Buffer.from('A')));
+  assert.throws(() => chunkUpload.writeChunk('up5', NaN, Buffer.from('A')));
+
+  // Nothing should have been written for the rejected calls.
+  assert.deepStrictEqual(chunkUpload.receivedChunks('up5'), []);
+});
