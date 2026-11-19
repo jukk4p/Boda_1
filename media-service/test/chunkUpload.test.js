@@ -106,3 +106,28 @@ test('a non-integer or negative chunkIndex is rejected by writeChunk', () => {
   // Nothing should have been written for the rejected calls.
   assert.deepStrictEqual(chunkUpload.receivedChunks('up5'), []);
 });
+
+test('getCompletion returns null before markCompleted has been called for this uploadId', () => {
+  const chunkUpload = freshChunkUpload();
+  assert.strictEqual(chunkUpload.getCompletion('never-completed'), null);
+});
+
+test('markCompleted then getCompletion round-trips the completed item id, even after the session dir is gone', () => {
+  const chunkUpload = freshChunkUpload();
+  chunkUpload.startOrGetSession('up6', 1, 'a.jpg', 'image/jpeg');
+  chunkUpload.writeChunk('up6', 0, Buffer.from('A'));
+  const assembledPath = chunkUpload.assembleIfComplete('up6');
+  assert.ok(assembledPath); // session dir is deleted as a side effect of this
+
+  chunkUpload.markCompleted('up6', 'final-item-id');
+
+  assert.deepStrictEqual(chunkUpload.getCompletion('up6'), { id: 'final-item-id' });
+});
+
+test('markCompleted and getCompletion reject a path-traversal uploadId instead of resolving outside UPLOAD_ROOT/chunks', () => {
+  const chunkUpload = freshChunkUpload();
+  const evilId = '../../evil';
+
+  assert.throws(() => chunkUpload.markCompleted(evilId, 'x'));
+  assert.throws(() => chunkUpload.getCompletion(evilId));
+});

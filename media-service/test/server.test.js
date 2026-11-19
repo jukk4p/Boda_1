@@ -233,6 +233,54 @@ test('POST /upload/chunk rejects a malformed/gapped chunk set (assembleIfComplet
   }
 });
 
+test('POST /upload/chunk on an already-completed uploadId re-acks the same item instead of starting a broken new session (lost-ack retry)', async () => {
+  const { app } = freshApp();
+  // chunkUpload is required internally by server.js (freshApp() cleared its
+  // require-cache entry right before requiring server), so this picks up
+  // the SAME module instance, bound to the same UPLOAD_ROOT -- this is how
+  // we simulate "the final chunk's ack was lost after the server already
+  // finished" without needing a real multi-chunk sequence first.
+  const chunkUpload = require('../src/chunkUpload');
+  const server = await listen(app);
+  try {
+    const uploadId = uploadIdFor('already-completed');
+    chunkUpload.markCompleted(uploadId, 'pretend-final-id');
+
+    // A retried final chunk: any chunkIndex, since the real one may have
+    // been any index -- the server must not care, it should short-circuit
+    // before even looking at chunkIndex/totalChunks.
+    const res = await postChunk(baseUrl(server), {
+      uploadId, chunkIndex: 7, totalChunks: 9, filename: 'clip.mp4', mimetype: 'video/mp4', buffer: Buffer.from('late-retry')
+    });
+
+    assert.strictEqual(res.status, 202);
+    assert.deepStrictEqual(await res.json(), { id: 'pretend-final-id', status: 'processing' });
+
+    // No new/broken session should have been created for this uploadId.
+    assert.deepStrictEqual(chunkUpload.receivedChunks(uploadId), []);
+  } finally {
+    server.close();
+  }
+});
+
+test('GET /upload/chunk/:uploadId/status reports completed:true and the item id for a tombstoned uploadId', async () => {
+  const { app } = freshApp();
+  const chunkUpload = require('../src/chunkUpload');
+  const server = await listen(app);
+  try {
+    const uploadId = uploadIdFor('status-completed');
+    chunkUpload.markCompleted(uploadId, 'pretend-final-id-2');
+
+    const statusRes = await fetch(`${baseUrl(server)}/upload/chunk/${uploadId}/status`);
+    assert.strictEqual(statusRes.status, 200);
+    assert.deepStrictEqual(await statusRes.json(), {
+      receivedChunks: [], completed: true, id: 'pretend-final-id-2'
+    });
+  } finally {
+    server.close();
+  }
+});
+
 test('POST /upload/chunk rejects a chunk over the per-chunk size cap (20MB) instead of buffering it into memory', async () => {
   const { app } = freshApp();
   const server = await listen(app);

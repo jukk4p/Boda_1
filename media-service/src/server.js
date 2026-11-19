@@ -141,6 +141,19 @@ app.post('/upload/chunk', chunkMiddleware.single('chunk'), (req, res) => {
 
   let assembledPath;
   try {
+    // A retried final chunk (its 202 ack lost in transit, exactly what the
+    // client's own retry/backoff is built to survive) would otherwise find
+    // sessionDir(uploadId) already gone -- assembleIfComplete deletes it --
+    // and startOrGetSession would silently start a new, broken one-chunk
+    // session that can never complete. Short-circuit on the tombstone
+    // first: any chunk (any index) arriving for an already-finished
+    // uploadId gets the same completion response, without touching the
+    // chunk's bytes or any session state.
+    const completed = chunkUpload.getCompletion(uploadId);
+    if (completed) {
+      return res.status(202).json({ id: completed.id, status: 'processing' });
+    }
+
     chunkUpload.startOrGetSession(uploadId, totalChunks, filename, mimetype);
     const { receivedChunks } = chunkUpload.writeChunk(uploadId, chunkIndex, req.file.buffer);
     assembledPath = chunkUpload.assembleIfComplete(uploadId);
@@ -165,12 +178,22 @@ app.post('/upload/chunk', chunkMiddleware.single('chunk'), (req, res) => {
   fs.mkdirSync(nodePath.dirname(destPath), { recursive: true });
   fs.renameSync(assembledPath, destPath);
 
+  // Written before any possible retry of this same final chunk could
+  // arrive, so that retry hits the tombstone short-circuit above instead
+  // of starting a new session.
+  chunkUpload.markCompleted(uploadId, id);
+
   runUploadPipeline({ id, ext, originalname: filename, mimetype, res });
 });
 
 app.get('/upload/chunk/:uploadId/status', (req, res) => {
+  const { uploadId } = req.params;
   try {
-    res.json({ receivedChunks: chunkUpload.receivedChunks(req.params.uploadId) });
+    const completed = chunkUpload.getCompletion(uploadId);
+    if (completed) {
+      return res.json({ receivedChunks: [], completed: true, id: completed.id });
+    }
+    res.json({ receivedChunks: chunkUpload.receivedChunks(uploadId) });
   } catch (err) {
     res.status(400).json({ error: 'invalid uploadId' });
   }

@@ -30,6 +30,12 @@ const chunksRoot = () => path.join(paths.UPLOAD_ROOT, 'chunks');
 const sessionDir = (uploadId) => path.join(chunksRoot(), uploadId);
 const sessionMetaPath = (uploadId) => path.join(sessionDir(uploadId), META_FILE);
 const chunkPath = (uploadId, chunkIndex) => path.join(sessionDir(uploadId), `${chunkIndex}${CHUNK_EXT}`);
+const COMPLETED_EXT = '.completed.json';
+// Lives directly under chunksRoot(), not inside sessionDir(uploadId): that
+// directory is deleted by assembleIfComplete the moment assembly finishes,
+// but the tombstone needs to outlive it so a retried final chunk (lost ack)
+// still finds it.
+const completionPath = (uploadId) => path.join(chunksRoot(), `${uploadId}${COMPLETED_EXT}`);
 
 function readMeta(uploadId) {
   const metaFile = sessionMetaPath(uploadId);
@@ -109,6 +115,41 @@ function assembleIfComplete(uploadId) {
   return outputPath;
 }
 
+// Tombstone written once a chunked upload's final chunk has been fully
+// assembled and handed off to the processing pipeline. Without this, a
+// retried POST of that same final chunk (its 202 ack lost in transit on
+// patchy wifi, exactly the condition the client's retry/backoff exists
+// for) would find sessionDir(uploadId) already gone -- deleted by
+// assembleIfComplete -- and startOrGetSession would silently start a new,
+// broken one-chunk session that can never reach totalChunks. The tombstone
+// lets both a retried final chunk and a reload-triggered status check
+// recognize "this uploadId already finished" instead of "never started".
+//
+// No expiry/sweep for these files (unlike sweepAbandoned for session
+// dirs): each is one tiny JSON file, written once per completed
+// over-CHUNK_THRESHOLD_BYTES upload for this wedding's lifetime -- not
+// worth the added complexity of a cleanup pass.
+function markCompleted(uploadId, id) {
+  assertSafeUploadId(uploadId);
+  fs.mkdirSync(chunksRoot(), { recursive: true });
+  fs.writeFileSync(completionPath(uploadId), JSON.stringify({ id }));
+}
+
+// Returns { id } if this uploadId was already completed, or null if not
+// (the normal/common case for any in-progress or never-started upload --
+// not an error). Only a malformed uploadId throws, via assertSafeUploadId,
+// consistent with every other function in this file.
+function getCompletion(uploadId) {
+  assertSafeUploadId(uploadId);
+  const file = completionPath(uploadId);
+  if (!fs.existsSync(file)) return null;
+  try {
+    return JSON.parse(fs.readFileSync(file, 'utf8'));
+  } catch {
+    return null;
+  }
+}
+
 // Deletes session directories whose own mtime is older than maxAgeMs (i.e.
 // sessions nobody has written a chunk to recently) and returns their ids.
 function sweepAbandoned(maxAgeMs) {
@@ -129,4 +170,7 @@ function sweepAbandoned(maxAgeMs) {
   return removed;
 }
 
-module.exports = { startOrGetSession, writeChunk, receivedChunks, assembleIfComplete, sweepAbandoned };
+module.exports = {
+  startOrGetSession, writeChunk, receivedChunks, assembleIfComplete, sweepAbandoned,
+  markCompleted, getCompletion
+};
