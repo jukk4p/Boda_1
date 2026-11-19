@@ -232,3 +232,23 @@ test('POST /upload/chunk rejects a malformed/gapped chunk set (assembleIfComplet
     server.close();
   }
 });
+
+test('POST /upload/chunk rejects a chunk over the per-chunk size cap (20MB) instead of buffering it into memory', async () => {
+  const { app } = freshApp();
+  const server = await listen(app);
+  try {
+    // One byte over server.js's CHUNK_MAX_BYTES (20MB) -- content doesn't
+    // matter, multer's fileSize limit rejects it before the route handler
+    // (or chunkUpload.js) ever sees it.
+    const oversizedChunk = Buffer.alloc(20 * 1024 * 1024 + 1);
+    const res = await postChunk(baseUrl(server), {
+      uploadId: uploadIdFor('oversized'), chunkIndex: 0, totalChunks: 1,
+      filename: 'big.jpg', mimetype: 'image/jpeg', buffer: oversizedChunk
+    });
+    // Same LIMIT_FILE_SIZE -> 413 handling POST /upload already gets from
+    // the shared error-handling middleware at the bottom of server.js.
+    assert.strictEqual(res.status, 413);
+  } finally {
+    server.close();
+  }
+});

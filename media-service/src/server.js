@@ -37,9 +37,20 @@ const upload = multer({
 });
 const PUBLIC_BASE_URL = process.env.PUBLIC_BASE_URL || 'https://bodadaniyirene.ivangonzalez.cloud/uploads';
 
+// memoryStorage buffers the whole "chunk" into RAM before the route handler
+// even runs (unlike /upload's diskStorage, which streams to disk). Reusing
+// the 500MB whole-file limit here would let a single request -- e.g. a
+// client that sends totalChunks: 1, legitimate or not -- load up to 500MB
+// into process memory, with nothing else throttling concurrent incoming
+// requests (MAX_CONCURRENT_PROCESSING only limits ffmpeg work, not multer
+// buffering). The chunking client (Task 9) splits files into 5MB pieces;
+// 20MB gives generous headroom above that while keeping worst-case RAM use
+// per request an order of magnitude below the old 500MB ceiling, on a
+// shared VPS running ~10 other services.
+const CHUNK_MAX_BYTES = 20 * 1024 * 1024;
 const chunkMiddleware = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 500 * 1024 * 1024 }
+  limits: { fileSize: CHUNK_MAX_BYTES }
 });
 
 const app = express();
