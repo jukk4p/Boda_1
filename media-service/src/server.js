@@ -78,7 +78,8 @@ app.post('/upload', upload.single('data'), (req, res) => {
           item = {
             id, name: req.file.originalname, mimeType: req.file.mimetype, width, height,
             url: `${PUBLIC_BASE_URL}/originals/${id}.${safeExt}`,
-            gridUrl: `${PUBLIC_BASE_URL}/grid/${id}.jpg`
+            gridUrl: `${PUBLIC_BASE_URL}/grid/${id}.jpg`,
+            originalExt: safeExt, backedUpAt: null
           };
         } else {
           const video = await processVideo({ id, ext });
@@ -90,7 +91,8 @@ app.post('/upload', upload.single('data'), (req, res) => {
           item = {
             id, name: req.file.originalname, mimeType: 'video/mp4', width, height,
             url: `${PUBLIC_BASE_URL}/video/${id}.mp4`,
-            posterUrl: `${PUBLIC_BASE_URL}/posters/${id}.jpg`
+            posterUrl: `${PUBLIC_BASE_URL}/posters/${id}.jpg`,
+            originalExt: safeExt, backedUpAt: null
           };
         }
       });
@@ -105,6 +107,20 @@ app.post('/upload', upload.single('data'), (req, res) => {
 });
 
 app.get('/list', (req, res) => res.json(manifest.readAll()));
+
+app.get('/unbacked', (req, res) => {
+  const items = manifest.readAll()
+    .filter((item) => !item.backedUpAt)
+    .map(({ id, originalExt }) => ({ id, originalExt }));
+  res.json(items);
+});
+
+app.post('/backed/:id', (req, res) => {
+  const { id } = req.params;
+  const updated = manifest.updateById(id, { backedUpAt: Date.now() });
+  if (!updated) return res.status(404).json({ error: 'not found' });
+  res.json({ id: updated.id, backedUpAt: updated.backedUpAt });
+});
 
 app.delete('/items/:id', (req, res) => {
   const { id } = req.params;
