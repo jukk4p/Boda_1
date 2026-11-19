@@ -1,9 +1,59 @@
-// Lógica compartida de subida de fotos/vídeos al webhook de n8n.
+// Lógica compartida de subida de fotos/vídeos al media-service (subida directa).
 // Usada por index.html (sección #recuerdos) y subir.html (QR).
 
-const WEBHOOK_URL = 'https://n8n.ivangonzalez.cloud/webhook/boda-fotos';
+const UPLOAD_URL = 'https://bodagloriayjose.ivangonzalez.cloud/upload';
 const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024;
 const ALLOWED_TYPE_PREFIXES = ['image/', 'video/'];
+const MAX_UPLOAD_ATTEMPTS = 3; // 1 intento inicial + 2 reintentos ante fallo de red
+
+// Sube un único archivo vía XMLHttpRequest, con progreso real y reintento
+// automático (hasta MAX_UPLOAD_ATTEMPTS intentos) cuando el fallo es de red
+// (xhr.onerror / xhr.ontimeout). Un 4xx o 5xx significa que el servidor
+// respondió — no es un fallo de red, así que no se reintenta: un 4xx es un
+// error de validación (reintentar desperdicia los datos del invitado) y un
+// 5xx se trata igual aquí porque la petición sí completó su ciclo
+// request/response; no se distingue como "transitorio" sin que el brief lo
+// pida explícitamente.
+// Resuelve con { ok: true } o { ok: false }; nunca rechaza.
+function uploadFileWithRetry(file, onProgress) {
+  return new Promise((resolve) => {
+    let attempt = 0;
+
+    function attemptUpload() {
+      attempt++;
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', UPLOAD_URL);
+      xhr.timeout = 120000; // equivalente a AbortSignal.timeout(120000)
+
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          onProgress(Math.round((event.loaded / event.total) * 100));
+        }
+      };
+
+      xhr.onload = () => {
+        resolve({ ok: xhr.status >= 200 && xhr.status < 300 });
+      };
+
+      function handleNetworkFailure() {
+        if (attempt < MAX_UPLOAD_ATTEMPTS) {
+          attemptUpload();
+        } else {
+          resolve({ ok: false });
+        }
+      }
+
+      xhr.onerror = handleNetworkFailure;
+      xhr.ontimeout = handleNetworkFailure;
+
+      const formData = new FormData();
+      formData.append('data', file, file.name);
+      xhr.send(formData);
+    }
+
+    attemptUpload();
+  });
+}
 
 function initUploadFlow({ buttonId, inputId, labelId, isActive, lockedMessage }) {
   const btn = document.getElementById(buttonId);
@@ -48,10 +98,10 @@ function initUploadFlow({ buttonId, inputId, labelId, isActive, lockedMessage })
         }
 
         try {
-          const formData = new FormData();
-          formData.append('data', file, file.name);
-          const res = await fetch(WEBHOOK_URL, { method: 'POST', body: formData, signal: AbortSignal.timeout(120000) });
-          if (res.ok) { okCount++; } else { failCount++; }
+          const result = await uploadFileWithRetry(file, (pct) => {
+            btnLabel.textContent = `Subiendo ${i + 1}/${files.length} — ${pct}%`;
+          });
+          if (result.ok) { okCount++; } else { failCount++; }
         } catch (err) {
           failCount++;
         }
