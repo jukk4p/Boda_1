@@ -8,6 +8,7 @@ const { processPhoto } = require('./processPhoto');
 const { processVideo } = require('./processVideo');
 const manifest = require('./manifest');
 const { createLimiter } = require('./concurrencyLimit');
+const chunkUpload = require('./chunkUpload');
 
 const originalsDir = nodePath.dirname(paths.originalPath('x', 'x'));
 
@@ -36,17 +37,24 @@ const upload = multer({
 });
 const PUBLIC_BASE_URL = process.env.PUBLIC_BASE_URL || 'https://bodadaniyirene.ivangonzalez.cloud/uploads';
 
+const chunkMiddleware = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 500 * 1024 * 1024 }
+});
+
 const app = express();
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 
-app.post('/upload', upload.single('data'), (req, res) => {
-  if (!req.file) return res.status(400).json({ error: 'missing file field "data"' });
-  const id = req.uploadId;
-  const ext = req.uploadExt;
-  const isImage = req.file.mimetype.startsWith('image/');
-  const isVideo = req.file.mimetype.startsWith('video/');
+// Shared by POST /upload (single-shot) and the final chunk of POST
+// /upload/chunk (resumable): both reach this once the raw file already sits
+// at paths.originalPath(id, ext) on disk. It sends the 202 ack immediately
+// and runs detect/processPhoto-or-processVideo/manifest.appendLine in the
+// background, exactly as POST /upload always has.
+function runUploadPipeline({ id, ext, originalname, mimetype, res }) {
+  const isImage = mimetype.startsWith('image/');
+  const isVideo = mimetype.startsWith('video/');
   if (!isImage && !isVideo) {
-    try { fs.unlinkSync(req.file.path); } catch {}
+    try { fs.unlinkSync(paths.originalPath(id, ext)); } catch {}
     return res.status(400).json({ error: 'unsupported mimeType' });
   }
 
@@ -76,7 +84,7 @@ app.post('/upload', upload.single('data'), (req, res) => {
             fs.renameSync(paths.originalPath(id, ext), paths.originalPath(id, safeExt));
           }
           item = {
-            id, name: req.file.originalname, mimeType: req.file.mimetype, width, height,
+            id, name: originalname, mimeType: mimetype, width, height,
             url: `${PUBLIC_BASE_URL}/originals/${id}.${safeExt}`,
             gridUrl: `${PUBLIC_BASE_URL}/grid/${id}.jpg`,
             originalExt: safeExt, backedUpAt: null
@@ -89,7 +97,7 @@ app.post('/upload', upload.single('data'), (req, res) => {
             fs.renameSync(paths.originalPath(id, ext), paths.originalPath(id, safeExt));
           }
           item = {
-            id, name: req.file.originalname, mimeType: 'video/mp4', width, height,
+            id, name: originalname, mimeType: 'video/mp4', width, height,
             url: `${PUBLIC_BASE_URL}/video/${id}.mp4`,
             posterUrl: `${PUBLIC_BASE_URL}/posters/${id}.jpg`,
             originalExt: safeExt, backedUpAt: null
@@ -104,6 +112,57 @@ app.post('/upload', upload.single('data'), (req, res) => {
       console.error('upload processing failed:', err);
     }
   })();
+}
+
+app.post('/upload', upload.single('data'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'missing file field "data"' });
+  runUploadPipeline({
+    id: req.uploadId, ext: req.uploadExt,
+    originalname: req.file.originalname, mimetype: req.file.mimetype, res
+  });
+});
+
+app.post('/upload/chunk', chunkMiddleware.single('chunk'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'missing file field "chunk"' });
+  const { uploadId, filename, mimetype } = req.body;
+  const chunkIndex = parseInt(req.body.chunkIndex, 10);
+  const totalChunks = parseInt(req.body.totalChunks, 10);
+
+  let assembledPath;
+  try {
+    chunkUpload.startOrGetSession(uploadId, totalChunks, filename, mimetype);
+    const { receivedChunks } = chunkUpload.writeChunk(uploadId, chunkIndex, req.file.buffer);
+    assembledPath = chunkUpload.assembleIfComplete(uploadId);
+    if (!assembledPath) {
+      return res.status(202).json({ uploadId, receivedChunks });
+    }
+  } catch (err) {
+    // Covers chunkUpload.js's guard throws (invalid uploadId/chunkIndex) and
+    // the known malformed/gapped-chunk-set case where assembleIfComplete can
+    // throw ENOENT instead of returning null (e.g. totalChunks claims 3 but
+    // the actual indices received are 0, 1, 5) -- a bad request, not a crash.
+    console.error('chunk upload failed:', err);
+    return res.status(400).json({ error: 'invalid chunk upload request' });
+  }
+
+  // Move the assembled file into the same place multer's diskStorage would
+  // have put a single-shot upload, so runUploadPipeline can't tell the
+  // difference between the two paths.
+  const id = generateId();
+  const ext = sanitizeExt(filename);
+  const destPath = paths.originalPath(id, ext);
+  fs.mkdirSync(nodePath.dirname(destPath), { recursive: true });
+  fs.renameSync(assembledPath, destPath);
+
+  runUploadPipeline({ id, ext, originalname: filename, mimetype, res });
+});
+
+app.get('/upload/chunk/:uploadId/status', (req, res) => {
+  try {
+    res.json({ receivedChunks: chunkUpload.receivedChunks(req.params.uploadId) });
+  } catch (err) {
+    res.status(400).json({ error: 'invalid uploadId' });
+  }
 });
 
 app.get('/list', (req, res) => res.json(manifest.readAll()));
@@ -149,6 +208,18 @@ app.use((err, req, res, next) => {
 if (require.main === module) {
   const port = process.env.PORT || 3000;
   app.listen(port, () => console.log(`media-service listening on ${port}`));
+
+  // Deletes chunked-upload sessions nobody finished (client crashed/closed
+  // the tab mid-upload) so they don't pile up under UPLOAD_ROOT/chunks forever.
+  const SWEEP_INTERVAL_MS = 60 * 60 * 1000; // hourly
+  const ABANDONED_MAX_AGE_MS = 48 * 3600 * 1000; // 48h
+  setInterval(() => {
+    try {
+      chunkUpload.sweepAbandoned(ABANDONED_MAX_AGE_MS);
+    } catch (err) {
+      console.error('chunk sweep failed:', err);
+    }
+  }, SWEEP_INTERVAL_MS);
 }
 
 module.exports = { app };
