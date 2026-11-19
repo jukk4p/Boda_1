@@ -119,15 +119,21 @@ function clearChunkUploadId(resumeKey) {
   }
 }
 
-// Consulta qué chunks ya tiene el servidor para este uploadId. Devuelve un
-// Set de índices confirmados, o null si la comprobación en sí falló: error
-// de red, o un 400 porque el uploadId es desconocido para el servidor (p.
-// ej. su sesión fue barrida tras 48h de abandono, o localStorage guardaba
-// un id obsoleto de otro entorno). null es una señal segura de "empezar
-// desde el chunk 0 con este mismo uploadId": el servidor trata cualquier
-// uploadId que no reconoce como el arranque de una sesión nueva en el
-// siguiente chunk que reciba (startOrGetSession), así que no hace falta
-// generar un uploadId distinto ni podemos quedarnos en un bucle por esto.
+// Consulta qué chunks ya tiene el servidor para este uploadId. Devuelve
+// { receivedChunks: Set, completed: boolean, id: string|null } en un 200,
+// o null si la comprobación en sí falló: error de red, o (más raro) un 400
+// porque el uploadId tiene un charset inválido — en la práctica esto solo
+// pasa si localStorage guardaba un id corrupto de otro entorno, ya que
+// crypto.randomUUID() siempre produce un charset válido. Un uploadId con
+// charset válido pero DESCONOCIDO para el servidor (p. ej. su sesión fue
+// barrida tras 48h de abandono) NO da 400: el servidor responde 200 con
+// receivedChunks: [] (ver GET /upload/chunk/:uploadId/status en
+// server.js), que ya tratamos igual que null más abajo. null es una señal
+// segura de "empezar desde el chunk 0 con este mismo uploadId": el
+// servidor trata cualquier uploadId que no reconoce como el arranque de
+// una sesión nueva en el siguiente chunk que reciba (startOrGetSession),
+// así que no hace falta generar un uploadId distinto ni podemos quedarnos
+// en un bucle por esto.
 function fetchReceivedChunks(uploadId) {
   return new Promise((resolve) => {
     const xhr = new XMLHttpRequest();
@@ -137,12 +143,16 @@ function fetchReceivedChunks(uploadId) {
       if (xhr.status === 200) {
         try {
           const body = JSON.parse(xhr.responseText);
-          resolve(new Set(Array.isArray(body.receivedChunks) ? body.receivedChunks : []));
+          resolve({
+            receivedChunks: new Set(Array.isArray(body.receivedChunks) ? body.receivedChunks : []),
+            completed: body.completed === true,
+            id: typeof body.id === 'string' ? body.id : null
+          });
         } catch (err) {
           resolve(null);
         }
       } else {
-        resolve(null); // p. ej. 400 uploadId desconocido/inválido
+        resolve(null); // p. ej. 400 uploadId con charset inválido
       }
     };
     xhr.onerror = () => resolve(null);
@@ -233,17 +243,27 @@ async function uploadFileChunked(file, onProgress) {
 
   if (isResuming) {
     const fetched = await fetchReceivedChunks(uploadId);
+    if (fetched && fetched.completed) {
+      // El servidor ya terminó esta subida en una sesión anterior (p. ej.
+      // el último chunk se ensambló y proceso correctamente, pero la
+      // respuesta de éxito nunca llegó a este cliente antes de recargar).
+      // No hay nada que enviar: tratamos esto como éxito inmediato y
+      // limpiamos la clave, igual que el camino normal de finalización.
+      onProgress(100);
+      clearChunkUploadId(resumeKey);
+      return { ok: true };
+    }
     if (fetched) {
       // Se ignoran índices fuera del rango actual de chunks: defensa ante
       // una clave de localStorage obsoleta que apuntara a una sesión
       // creada con un tamaño de chunk o de archivo distinto.
-      for (const idx of fetched) {
+      for (const idx of fetched.receivedChunks) {
         if (idx >= 0 && idx < totalChunks) receivedSet.add(idx);
       }
     }
     // fetched === null → la comprobación de estado falló (red, o uploadId
-    // desconocido en el servidor) → receivedSet queda vacío, es decir,
-    // se arranca desde el chunk 0 con el MISMO uploadId (el servidor
+    // con charset inválido) → receivedSet queda vacío, es decir, se
+    // arranca desde el chunk 0 con el MISMO uploadId (el servidor
     // simplemente crea una sesión nueva para él en el próximo chunk).
   }
 
