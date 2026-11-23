@@ -19,6 +19,8 @@ const originalsDir = nodePath.dirname(paths.originalPath('x', 'x'));
 const MAX_CONCURRENT_PROCESSING = Number(process.env.MAX_CONCURRENT_PROCESSING) || 2;
 const processingLimiter = createLimiter(MAX_CONCURRENT_PROCESSING);
 
+const MAX_FILE_SIZE_BYTES = 500 * 1024 * 1024;
+
 const upload = multer({
   storage: multer.diskStorage({
     destination: (req, file, cb) => {
@@ -33,9 +35,27 @@ const upload = multer({
       cb(null, `${id}.${ext}`);
     }
   }),
-  limits: { fileSize: 500 * 1024 * 1024 }
+  limits: { fileSize: MAX_FILE_SIZE_BYTES }
 });
-const PUBLIC_BASE_URL = process.env.PUBLIC_BASE_URL || 'https://bodadaniyirene.ivangonzalez.cloud/uploads';
+const PUBLIC_BASE_URL = process.env.PUBLIC_BASE_URL || 'https://bodagloriayjose.ivangonzalez.cloud/uploads';
+
+// Shared secret for the three admin/internal routes below (GET /unbacked,
+// POST /backed/:id, DELETE /items/:id). The Traefik rule routes these
+// publicly alongside the always-public /upload and /list, so without this
+// check anyone who can read ids from GET /list (also public) could wipe the
+// whole gallery via DELETE /items/:id. n8n's admin-delete workflow is meant
+// to sit behind Basic Auth, but that protection is worthless if the backend
+// it calls is reachable directly -- this check is what actually enforces it.
+// No hardcoded fallback on purpose: if the operator forgets to set this env
+// var, requireAdminToken fails closed (401 for everyone) rather than open.
+const ADMIN_TOKEN = process.env.ADMIN_TOKEN;
+
+function requireAdminToken(req, res, next) {
+  if (!ADMIN_TOKEN || req.get('X-Admin-Token') !== ADMIN_TOKEN) {
+    return res.status(401).json({ error: 'unauthorized' });
+  }
+  next();
+}
 
 // memoryStorage buffers the whole "chunk" into RAM before the route handler
 // even runs (unlike /upload's diskStorage, which streams to disk). Reusing
@@ -52,6 +72,17 @@ const chunkMiddleware = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: CHUNK_MAX_BYTES }
 });
+
+// Caps how many chunks a single resumable upload may declare. Without this,
+// totalChunks (and chunkIndex, which becomes a "<chunkIndex>.part" filename)
+// are trusted from the request body with no ceiling at all: one "upload" can
+// grow past the 500MB whole-file cap /upload enforces, five MB at a time,
+// and assembleIfComplete concatenates the whole thing synchronously,
+// blocking the event loop for everyone else for as long as that takes.
+// js/upload.js always sends 5MB chunks (CHUNK_SIZE_BYTES), so this is the
+// same 500MB ceiling expressed at that granularity.
+const CHUNK_SIZE_BYTES = 5 * 1024 * 1024;
+const MAX_CHUNKS_PER_UPLOAD = Math.ceil(MAX_FILE_SIZE_BYTES / CHUNK_SIZE_BYTES);
 
 const app = express();
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
@@ -139,6 +170,20 @@ app.post('/upload/chunk', chunkMiddleware.single('chunk'), (req, res) => {
   const chunkIndex = parseInt(req.body.chunkIndex, 10);
   const totalChunks = parseInt(req.body.totalChunks, 10);
 
+  // Bounds-check totalChunks/chunkIndex before touching disk or session
+  // state. Without this, a totalChunks of e.g. 999999 (or a chunkIndex far
+  // beyond a small, legitimate totalChunks -- chunkIndex: 999 with
+  // totalChunks: 2 was confirmed to write a "999.part" file) lets a single
+  // "upload" grow past the 500MB cap /upload enforces, 20MB at a time, with
+  // assembleIfComplete concatenating the whole thing synchronously on the
+  // event loop.
+  if (!Number.isInteger(totalChunks) || totalChunks < 1 || totalChunks > MAX_CHUNKS_PER_UPLOAD) {
+    return res.status(400).json({ error: 'invalid totalChunks' });
+  }
+  if (!Number.isInteger(chunkIndex) || chunkIndex < 0 || chunkIndex >= totalChunks) {
+    return res.status(400).json({ error: 'invalid chunkIndex' });
+  }
+
   let assembledPath;
   try {
     // A retried final chunk (its 202 ack lost in transit, exactly what the
@@ -154,36 +199,54 @@ app.post('/upload/chunk', chunkMiddleware.single('chunk'), (req, res) => {
       return res.status(202).json({ id: completed.id, status: 'processing' });
     }
 
-    chunkUpload.startOrGetSession(uploadId, totalChunks, filename, mimetype);
+    // startOrGetSession returns the session's metadata either way: freshly
+    // written from THIS request's filename/mimetype if this is the first
+    // chunk, or unchanged from whichever request started the session if
+    // not. Using `session.filename`/`session.mimetype` below (rather than
+    // this request's own `filename`/`mimetype`) means the final chunk's
+    // request body can never override what the session was actually
+    // started with -- it can't matter whether the client happens to resend
+    // those fields correctly on every chunk.
+    const session = chunkUpload.startOrGetSession(uploadId, totalChunks, filename, mimetype);
     const { receivedChunks } = chunkUpload.writeChunk(uploadId, chunkIndex, req.file.buffer);
     assembledPath = chunkUpload.assembleIfComplete(uploadId);
     if (!assembledPath) {
       return res.status(202).json({ uploadId, receivedChunks });
     }
+
+    // Validate before marking anything "complete": a malformed/missing
+    // mimetype must not leave a tombstone pointing at an id that
+    // runUploadPipeline then fails to ever add to the manifest (the actual
+    // bug -- this check used to run, via mimetype.startsWith(), AFTER
+    // markCompleted/renameSync below, outside this try/catch entirely).
+    if (typeof session.mimetype !== 'string' || !session.mimetype) {
+      throw new Error(`invalid session mimetype: ${JSON.stringify(session.mimetype)}`);
+    }
+
+    // Move the assembled file into the same place multer's diskStorage
+    // would have put a single-shot upload, so runUploadPipeline can't tell
+    // the difference between the two paths.
+    const id = generateId();
+    const ext = sanitizeExt(session.filename);
+    const destPath = paths.originalPath(id, ext);
+    fs.mkdirSync(nodePath.dirname(destPath), { recursive: true });
+    fs.renameSync(assembledPath, destPath);
+
+    // Written before any possible retry of this same final chunk could
+    // arrive, so that retry hits the tombstone short-circuit above instead
+    // of starting a new session.
+    chunkUpload.markCompleted(uploadId, id);
+
+    runUploadPipeline({ id, ext, originalname: session.filename, mimetype: session.mimetype, res });
   } catch (err) {
-    // Covers chunkUpload.js's guard throws (invalid uploadId/chunkIndex) and
-    // the known malformed/gapped-chunk-set case where assembleIfComplete can
+    // Covers chunkUpload.js's guard throws (invalid uploadId/chunkIndex), the
+    // known malformed/gapped-chunk-set case where assembleIfComplete can
     // throw ENOENT instead of returning null (e.g. totalChunks claims 3 but
-    // the actual indices received are 0, 1, 5) -- a bad request, not a crash.
+    // the actual indices received are 0, 1, 5), and the invalid-mimetype
+    // guard above -- all bad requests, not crashes.
     console.error('chunk upload failed:', err);
     return res.status(400).json({ error: 'invalid chunk upload request' });
   }
-
-  // Move the assembled file into the same place multer's diskStorage would
-  // have put a single-shot upload, so runUploadPipeline can't tell the
-  // difference between the two paths.
-  const id = generateId();
-  const ext = sanitizeExt(filename);
-  const destPath = paths.originalPath(id, ext);
-  fs.mkdirSync(nodePath.dirname(destPath), { recursive: true });
-  fs.renameSync(assembledPath, destPath);
-
-  // Written before any possible retry of this same final chunk could
-  // arrive, so that retry hits the tombstone short-circuit above instead
-  // of starting a new session.
-  chunkUpload.markCompleted(uploadId, id);
-
-  runUploadPipeline({ id, ext, originalname: filename, mimetype, res });
 });
 
 app.get('/upload/chunk/:uploadId/status', (req, res) => {
@@ -201,28 +264,37 @@ app.get('/upload/chunk/:uploadId/status', (req, res) => {
 
 app.get('/list', (req, res) => res.json(manifest.readAll()));
 
-app.get('/unbacked', (req, res) => {
+app.get('/unbacked', requireAdminToken, (req, res) => {
   const items = manifest.readAll()
     .filter((item) => !item.backedUpAt)
     .map(({ id, originalExt }) => ({ id, originalExt }));
   res.json(items);
 });
 
-app.post('/backed/:id', (req, res) => {
+app.post('/backed/:id', requireAdminToken, (req, res) => {
   const { id } = req.params;
   const updated = manifest.updateById(id, { backedUpAt: Date.now() });
   if (!updated) return res.status(404).json({ error: 'not found' });
   res.json({ id: updated.id, backedUpAt: updated.backedUpAt });
 });
 
-app.delete('/items/:id', (req, res) => {
+app.delete('/items/:id', requireAdminToken, (req, res) => {
   const { id } = req.params;
   if (!/^\d+_[0-9a-f]{32}$/.test(id)) return res.status(400).json({ error: 'invalid id' });
 
   const removed = manifest.removeById(id);
   if (!removed) return res.status(404).json({ error: 'not found' });
 
-  const ext = (removed.url || '').split('.').pop();
+  // The original's real extension is removed.originalExt (set at upload
+  // time from the content-sniffed format -- see runUploadPipeline above),
+  // NEVER parsed from removed.url: for a video, that URL always points at
+  // /video/<id>.mp4, the remuxed OUTPUT file, while the original on disk
+  // lives at originals/<id>.mov|.mkv|.avi (VIDEO_FORMAT_TO_EXT) -- deriving
+  // the extension from the url used to try to unlink originals/<id>.mp4,
+  // which never existed, leaving the real original on disk (and still
+  // publicly servable) forever. The url-parsing fallback only matters for
+  // a pre-existing manifest row written before originalExt existed.
+  const ext = removed.originalExt || (removed.url || '').split('.').pop();
   const candidates = [paths.gridPath(id), paths.posterPath(id), paths.videoPath(id)];
   if (ext) candidates.push(paths.originalPath(id, ext));
   candidates.forEach((p) => { try { fs.unlinkSync(p); } catch {} });
@@ -233,7 +305,13 @@ app.delete('/items/:id', (req, res) => {
 // eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
   if (err && err.code === 'LIMIT_FILE_SIZE') {
-    return res.status(413).json({ error: 'file too large (max 500MB)' });
+    // CHUNK_MAX_BYTES (20MB) is the per-chunk limit on /upload/chunk, a
+    // different, much smaller number than the 500MB whole-file limit on
+    // /upload -- the message must say whichever one actually applied here,
+    // not always the single-shot 500MB figure.
+    const isChunkRoute = req.path === '/upload/chunk';
+    const limitMb = (isChunkRoute ? CHUNK_MAX_BYTES : MAX_FILE_SIZE_BYTES) / (1024 * 1024);
+    return res.status(413).json({ error: `file too large (max ${limitMb}MB)` });
   }
   console.error('unhandled error:', err);
   res.status(500).json({ error: 'internal server error' });

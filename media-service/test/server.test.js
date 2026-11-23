@@ -5,9 +5,19 @@ const os = require('os');
 const path = require('path');
 const { runCommand } = require('../src/ffmpeg');
 
+// Fixed admin token every test uses, set fresh on process.env before each
+// freshApp() re-requires server.js (which reads ADMIN_TOKEN at module load,
+// same as PUBLIC_BASE_URL) -- so GET /unbacked, POST /backed/:id and
+// DELETE /items/:id are all reachable in tests with this exact header.
+const TEST_ADMIN_TOKEN = 'test-admin-token';
+function adminHeaders() {
+  return { 'X-Admin-Token': TEST_ADMIN_TOKEN };
+}
+
 function freshApp() {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'server-test-'));
   process.env.UPLOAD_ROOT = dir;
+  process.env.ADMIN_TOKEN = TEST_ADMIN_TOKEN;
   delete require.cache[require.resolve('../src/paths')];
   delete require.cache[require.resolve('../src/manifest')];
   delete require.cache[require.resolve('../src/chunkUpload')];
@@ -44,6 +54,27 @@ function makeJpegFixture(dir) {
   ]).then(() => outPath);
 }
 
+// A tiny real AVI (mpeg4 codec, not h264/mp4) so detectAndValidateFormat's
+// content-sniffed format_name is 'avi' and VIDEO_FORMAT_TO_EXT maps it to
+// originalExt 'avi' -- deliberately NOT 'mp4', so a delete bug that derives
+// the original's extension from the video URL (always .../video/<id>.mp4,
+// the remuxed OUTPUT) instead of from originalExt would look for
+// originals/<id>.mp4 and silently fail to remove the real originals/<id>.avi.
+function makeAviFixture(dir) {
+  const outPath = path.join(dir, 'fixture.avi');
+  return runCommand('ffmpeg', [
+    '-y', '-v', 'error', '-f', 'lavfi', '-i', 'testsrc=size=64x64:duration=1:rate=5',
+    '-c:v', 'mpeg4', '-t', '1', outPath
+  ]).then(() => outPath);
+}
+
+async function postUpload(base, { filePath, filename, mimetype }) {
+  const bytes = fs.readFileSync(filePath);
+  const form = new FormData();
+  form.append('data', new Blob([bytes], { type: mimetype }), filename);
+  return fetch(`${base}/upload`, { method: 'POST', body: form });
+}
+
 function uploadIdFor(label) {
   return `test-${label}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
@@ -75,9 +106,26 @@ test('GET /unbacked lists only items without backedUpAt, with their originalExt'
   manifest.appendLine({ id: '2_b', originalExt: 'mp4' }); // backedUpAt ausente
   const server = await listen(app);
   try {
-    const res = await fetch(`${baseUrl(server)}/unbacked`);
+    const res = await fetch(`${baseUrl(server)}/unbacked`, { headers: adminHeaders() });
     assert.strictEqual(res.status, 200);
     assert.deepStrictEqual(await res.json(), [{ id: '2_b', originalExt: 'mp4' }]);
+  } finally {
+    server.close();
+  }
+});
+
+test('GET /unbacked returns 401 without X-Admin-Token', async () => {
+  const { app, manifest } = freshApp();
+  manifest.appendLine({ id: '2_b', originalExt: 'mp4' });
+  const server = await listen(app);
+  try {
+    const res = await fetch(`${baseUrl(server)}/unbacked`);
+    assert.strictEqual(res.status, 401);
+
+    const wrongToken = await fetch(`${baseUrl(server)}/unbacked`, {
+      headers: { 'X-Admin-Token': 'wrong-token' }
+    });
+    assert.strictEqual(wrongToken.status, 401);
   } finally {
     server.close();
   }
@@ -88,13 +136,13 @@ test('POST /backed/:id marks the item and GET /unbacked stops listing it', async
   manifest.appendLine({ id: '1_a', originalExt: 'jpg', backedUpAt: null });
   const server = await listen(app);
   try {
-    const postRes = await fetch(`${baseUrl(server)}/backed/1_a`, { method: 'POST' });
+    const postRes = await fetch(`${baseUrl(server)}/backed/1_a`, { method: 'POST', headers: adminHeaders() });
     assert.strictEqual(postRes.status, 200);
     const body = await postRes.json();
     assert.strictEqual(body.id, '1_a');
     assert.strictEqual(typeof body.backedUpAt, 'number');
 
-    const listRes = await fetch(`${baseUrl(server)}/unbacked`);
+    const listRes = await fetch(`${baseUrl(server)}/unbacked`, { headers: adminHeaders() });
     assert.deepStrictEqual(await listRes.json(), []);
   } finally {
     server.close();
@@ -105,9 +153,84 @@ test('POST /backed/:id returns 404 for an unknown id', async () => {
   const { app } = freshApp();
   const server = await listen(app);
   try {
-    const res = await fetch(`${baseUrl(server)}/backed/missing`, { method: 'POST' });
+    const res = await fetch(`${baseUrl(server)}/backed/missing`, { method: 'POST', headers: adminHeaders() });
     assert.strictEqual(res.status, 404);
   } finally {
+    server.close();
+  }
+});
+
+test('POST /backed/:id returns 401 without X-Admin-Token', async () => {
+  const { app, manifest } = freshApp();
+  manifest.appendLine({ id: '1_a', originalExt: 'jpg', backedUpAt: null });
+  const server = await listen(app);
+  try {
+    const res = await fetch(`${baseUrl(server)}/backed/1_a`, { method: 'POST' });
+    assert.strictEqual(res.status, 401);
+  } finally {
+    server.close();
+  }
+});
+
+test('DELETE /items/:id returns 401 without X-Admin-Token', async () => {
+  const { app, manifest } = freshApp();
+  manifest.appendLine({ id: '1732000000000_' + 'a'.repeat(32), originalExt: 'jpg', backedUpAt: null });
+  const server = await listen(app);
+  try {
+    const res = await fetch(`${baseUrl(server)}/items/1732000000000_${'a'.repeat(32)}`, { method: 'DELETE' });
+    assert.strictEqual(res.status, 401);
+  } finally {
+    server.close();
+  }
+});
+
+test('DELETE /items/:id removes the original (via originalExt, not the video URL\'s .mp4), poster, and video files', async (t) => {
+  if (!(await ffmpegToolsAvailable())) {
+    t.skip('ffmpeg/ffprobe not found on PATH in this environment');
+    return;
+  }
+  const { app, manifest } = freshApp();
+  const server = await listen(app);
+  const workDir = fs.mkdtempSync(path.join(os.tmpdir(), 'server-delete-video-'));
+  try {
+    const paths = require('../src/paths');
+    const fixturePath = await makeAviFixture(workDir);
+    const res = await postUpload(baseUrl(server), {
+      filePath: fixturePath, filename: 'clip.avi', mimetype: 'video/avi'
+    });
+    assert.strictEqual(res.status, 202);
+    const { id } = await res.json();
+
+    // Processing runs in the background; poll the manifest until the item
+    // (and therefore every file it produced) actually exists.
+    let item;
+    for (let i = 0; i < 50 && !item; i++) {
+      item = manifest.readAll().find((it) => it.id === id);
+      if (!item) await new Promise((r) => setTimeout(r, 100));
+    }
+    assert.ok(item, 'expected the uploaded video to appear in the manifest');
+    // Confirms the fixture really does take the "not mp4" path this test
+    // exists to cover -- if this ever becomes 'mp4', the test no longer
+    // exercises the bug it's meant to catch.
+    assert.strictEqual(item.originalExt, 'avi');
+    assert.ok(fs.existsSync(paths.originalPath(id, 'avi')), 'expected the original .avi to exist before delete');
+    assert.ok(fs.existsSync(paths.posterPath(id)), 'expected a poster to exist before delete');
+    assert.ok(fs.existsSync(paths.videoPath(id)), 'expected the remuxed video to exist before delete');
+
+    const delRes = await fetch(`${baseUrl(server)}/items/${id}`, {
+      method: 'DELETE',
+      headers: adminHeaders()
+    });
+    assert.strictEqual(delRes.status, 200);
+    assert.deepStrictEqual(await delRes.json(), { id, status: 'deleted' });
+
+    assert.ok(!fs.existsSync(paths.originalPath(id, 'avi')), 'original .avi should be gone after delete');
+    assert.ok(!fs.existsSync(paths.gridPath(id)), 'grid should not exist (video items never had one)');
+    assert.ok(!fs.existsSync(paths.posterPath(id)), 'poster should be gone after delete');
+    assert.ok(!fs.existsSync(paths.videoPath(id)), 'video should be gone after delete');
+    assert.deepStrictEqual(manifest.readAll().find((it) => it.id === id), undefined);
+  } finally {
+    fs.rmSync(workDir, { recursive: true, force: true });
     server.close();
   }
 });
@@ -226,6 +349,36 @@ test('POST /upload/chunk rejects a malformed/gapped chunk set (assembleIfComplet
     });
     const res = await postChunk(baseUrl(server), {
       uploadId, chunkIndex: 5, totalChunks: 3, filename: 'a.jpg', mimetype: 'image/jpeg', buffer: Buffer.from('C')
+    });
+    assert.strictEqual(res.status, 400);
+  } finally {
+    server.close();
+  }
+});
+
+test('POST /upload/chunk rejects a chunkIndex at or beyond totalChunks (400, not 202)', async () => {
+  const { app } = freshApp();
+  const server = await listen(app);
+  try {
+    // Confirmed exploit from the final review: chunkIndex 999 with
+    // totalChunks 2 used to be accepted (202) and write a "999.part" file.
+    const res = await postChunk(baseUrl(server), {
+      uploadId: uploadIdFor('bad-chunk-index'), chunkIndex: 999, totalChunks: 2,
+      filename: 'a.jpg', mimetype: 'image/jpeg', buffer: Buffer.from('A')
+    });
+    assert.strictEqual(res.status, 400);
+  } finally {
+    server.close();
+  }
+});
+
+test('POST /upload/chunk rejects a totalChunks above the 500MB/5MB-chunk ceiling (400, not 202)', async () => {
+  const { app } = freshApp();
+  const server = await listen(app);
+  try {
+    const res = await postChunk(baseUrl(server), {
+      uploadId: uploadIdFor('bad-total-chunks'), chunkIndex: 0, totalChunks: 999999,
+      filename: 'a.jpg', mimetype: 'image/jpeg', buffer: Buffer.from('A')
     });
     assert.strictEqual(res.status, 400);
   } finally {
