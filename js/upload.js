@@ -2,8 +2,10 @@
 // Usada por index.html (sección #recuerdos) y subir.html (QR).
 
 const UPLOAD_URL = 'https://bodagloriayjose.ivangonzalez.cloud/upload';
-const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024;
+const MAX_FILE_SIZE_BYTES = 500 * 1024 * 1024;
 const ALLOWED_TYPE_PREFIXES = ['image/', 'video/'];
+// Fallback extensions for when file.type comes back empty (see M9 below).
+const ALLOWED_EMPTY_TYPE_EXTENSIONS = ['.heic', '.heif', '.mov', '.avi', '.mkv', '.mp4', '.3gp'];
 const MAX_UPLOAD_ATTEMPTS = 3; // 1 intento inicial + 2 reintentos ante fallo de red
 const RETRY_DELAY_MS = 2000; // pausa entre intentos, para dar tiempo real a una reconexión
 const UPLOAD_TIMEOUT_BUDGET_MS = 120000; // presupuesto TOTAL compartido entre todos los intentos
@@ -166,7 +168,7 @@ function fetchReceivedChunks(uploadId) {
 // cada chunk pesa como mucho CHUNK_SIZE_BYTES (5MB, fijo), así que un
 // timeout fijo por intento es suficiente — no necesita el presupuesto
 // compartido que sí hace falta cuando el archivo completo puede pesar
-// hasta 50MB. Un 4xx/5xx significa que el servidor respondió y no se
+// hasta 500MB. Un 4xx/5xx significa que el servidor respondió y no se
 // reintenta (mismo razonamiento que el camino no-chunked). La resumption
 // entre recargas ya da una red de seguridad más gruesa (si el usuario
 // recarga a mitad, retoma desde el primer chunk que falte), así que este
@@ -365,7 +367,15 @@ function initUploadFlow({ buttonId, inputId, labelId, isActive, lockedMessage })
         const file = files[i];
         btnLabel.textContent = `Subiendo ${i + 1}/${files.length}…`;
 
-        const isAllowedType = ALLOWED_TYPE_PREFIXES.some(p => file.type.startsWith(p));
+        // Algunos navegadores de escritorio devuelven file.type === '' para
+        // .heic/.heif y algunos .mov (no reconocen el tipo MIME), lo que
+        // rechazaría de entrada un archivo perfectamente válido antes de
+        // llegar siquiera al servidor. Si el tipo viene vacío, se cae a
+        // comprobar la extensión en vez de rechazar directamente.
+        const lowerName = (file.name || '').toLowerCase();
+        const isAllowedType = file.type
+          ? ALLOWED_TYPE_PREFIXES.some(p => file.type.startsWith(p))
+          : ALLOWED_EMPTY_TYPE_EXTENSIONS.some(ext => lowerName.endsWith(ext));
         if (!isAllowedType || file.size > MAX_FILE_SIZE_BYTES) {
           rejectedCount++;
           continue;
