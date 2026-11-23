@@ -4,17 +4,25 @@ Reemplaza la sección de Drive de `README-setup.md` para la parte de
 galería/subida de fotos y vídeos. Los formularios de RSVP/alérgenos no
 cambian — siguen su propio workflow, documentado aparte.
 
-**Estado:** los 3 workflows de abajo ya están creados, configurados y
-publicados en producción (`n8n.ivangonzalez.cloud`), y el workflow viejo de
-subida directa a Drive ya está desactivado. Las pruebas de humo completas
-(que el listado devuelva datos reales, que el borrado funcione contra un
-id real, que el backup suba un archivo real a Drive) están **pendientes de
-la Task 13** — el dominio `bodagloriayjose.ivangonzalez.cloud` aún no tiene
-el `media-service` desplegado detrás, así que hoy devuelve un 404 genérico
-de nginx para cualquier ruta. Lo que sí se verificó ya, sin depender del
-despliegue: la forma de cada workflow (nodos, modos Expression, Basic Auth)
-es correcta, y el gate de autenticación del workflow de borrado responde
-tal como se espera (ver la sección de cada workflow).
+**Estado:** el `media-service` está desplegado en producción (Coolify,
+`bodagloriayjose.ivangonzalez.cloud`) y los 3 workflows de abajo están
+creados, configurados y publicados en n8n (`n8n.ivangonzalez.cloud`); el
+workflow viejo de subida directa a Drive ya está desactivado. La Task 13
+hizo un smoke test real contra producción (ver su propia sección más abajo)
+que cubrió: subida de un archivo en una sola petición y subida por chunks
+(forzando un remux real, no el atajo de "ya compatible"), servido estático
+de los 4 archivos resultantes (original, grid, vídeo remuxed, poster) desde
+nginx, borrado vía `DELETE /items/:id` (confirmando que el ítem desaparece
+del manifest y de disco), y que la capa de datos de `GET /unbacked` está
+bien conectada para el Workflow 2. Sigue **pendiente**:
+
+- El recorrido real por la UI (`subir.html` → `galeria.html` →
+  `admin.html`), bloqueado en que esta rama se mezcle a `master` y el sitio
+  estático se redespliegue con ella (ver "Lo que quedó pendiente" en la
+  sección del smoke test de la Task 13 más abajo).
+- La subida real a Drive del Workflow 2 (backup) nunca se ha ejecutado de
+  verdad de principio a fin — ver su propia sección de smoke test para el
+  detalle exacto de qué sí y qué no se ha probado.
 
 El media-service propio (`media-service/`, desplegado en Coolify — ver la
 sección final de este documento) reemplaza la subida directa a Google
@@ -28,7 +36,10 @@ Drive. n8n pasa a tener tres funciones nada más:
 
 **Qué hace:** `GET /webhook/boda-gj-galeria` → reenvía a
 `GET https://bodagloriayjose.ivangonzalez.cloud/list` → devuelve el JSON
-tal cual al que pregunta (lo consumen `js/gallery.js` y `admin.html`).
+tal cual al que pregunta. **Solo lo consume `admin.html`** —
+`js/gallery.js` (y por tanto `galeria.html`) NO pasa por este webhook: llama
+directo a `https://bodagloriayjose.ivangonzalez.cloud/list`
+(`GALLERY_LIST_URL` en `js/gallery.js`), sin n8n en medio.
 
 1. En n8n: **Workflows → Add workflow**, nómbralo
    `Boda Gloria & José - Listado de galería`.
@@ -67,8 +78,9 @@ tal cual al que pregunta (lo consumen `js/gallery.js` y `admin.html`).
 5. Activa el workflow (interruptor "Active").
 6. Copia la **Production URL** del nodo Webhook — debe coincidir con
    `https://n8n.ivangonzalez.cloud/webhook/boda-gj-galeria`, que es el
-   valor que ya están usando `js/gallery.js` (`GALLERY_LIST_URL`) y
-   `admin.html` (`LIST_WEBHOOK_URL`).
+   valor que ya está usando `admin.html` (`LIST_WEBHOOK_URL`). `js/gallery.js`
+   no usa este webhook en absoluto — ver la nota al principio de esta
+   sección.
 
 **Smoke test:**
 
@@ -156,10 +168,14 @@ espera a que `GET /unbacked` la liste, ejecuta el workflow manualmente
 de Drive, y (b) `GET /unbacked` deja de listarla después (gracias a
 `POST /backed/:id`).
 
-**Pendiente (Task 13):** no se pudo ejecutar este smoke test todavía — sin
-`media-service` desplegado no hay ningún ítem real en `/unbacked` para
-probar. El workflow está construido y publicado, listo para probarse en
-cuanto el backend esté en producción.
+**Pendiente — nunca ejecutado de verdad:** la Task 13 confirmó que la capa
+de datos de este workflow está bien conectada (`GET /unbacked` lista los
+ítems reales pendientes de respaldo), pero **nadie ha visto todavía un
+original llegar de verdad a Drive y marcarse como respaldado de principio a
+fin** con este workflow. El workflow está construido y publicado, listo
+para probarse: sube una foto de prueba real, espera a que aparezca en
+`GET /unbacked`, ejecuta el workflow manualmente y confirma (a) y (b) de
+arriba.
 
 ## Workflow 3 — "Boda Gloria & José - Borrar de galería"
 
@@ -252,7 +268,8 @@ fotos a Drive"`) ya no se usa — `js/upload.js` ahora sube directo a
 por si hiciera falta revertir antes de la boda. El workflow viejo de
 listado (`"Boda Gloria & José - Listado de fotos"`, vía Drive) se dejó
 activo deliberadamente por ahora — ya no lo consume nada en el sitio
-(tanto `js/gallery.js` como `admin.html` usan el nuevo `boda-gj-galeria`),
+(`admin.html` usa el nuevo `boda-gj-galeria`; `js/gallery.js` nunca pasó
+por n8n para esto, llama directo a `GET /list`),
 pero no formaba parte del alcance explícito de esta tarea; se puede
 desactivar en una pasada de limpieza posterior si se confirma que nada más
 lo usa.
@@ -349,8 +366,12 @@ para validar CORS igual que lo haría un invitado real:
   responden `200` reales desde `nginx/1.31.9` con los tamaños correctos ✓
 - `GET /unbacked` lista ambos ítems como pendientes de respaldo (confirma
   que la capa de datos que consume el Workflow 2 de n8n está bien
-  conectada; la lógica de subida a Drive en sí ya se probó en vivo en la
-  Task 12 y no se repitió aquí) ✓
+  conectada) ✓ — **la subida real a Drive en sí no se probó aquí ni en
+  ninguna tarea anterior**: nadie ha visto todavía un original llegar de
+  verdad a la carpeta de Drive y marcarse como respaldado de principio a
+  fin (ver la nota de "Pendiente" en la sección del Workflow 2 más arriba,
+  que corrige una afirmación contradictoria que había quedado en versiones
+  anteriores de este documento).
 - Limpieza: `DELETE /items/:id` en ambos — confirmado que desaparecen
   tanto del manifest (`GET /list` → `[]`) como del disco (`404` en sus
   URLs). Producción queda con la galería vacía, como estaba.
