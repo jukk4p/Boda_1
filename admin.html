@@ -200,8 +200,8 @@
   <script>
     // Listado: mismo webhook público que usa galeria.html (solo lectura).
     const LIST_WEBHOOK_URL = 'https://n8n.ivangonzalez.cloud/webhook/boda-gj-galeria';
-    // Borrado: webhook nuevo, protegido con Basic Auth en n8n (ver nota al
-    // final de esta respuesta). Reenvía a media-service -> DELETE /items/:id.
+    // Borrado: webhook nuevo, protegido con Basic Auth en n8n. Reenvía a
+    // media-service -> DELETE /items/:id.
     const DELETE_WEBHOOK_URL = 'https://n8n.ivangonzalez.cloud/webhook/boda-gj-borrar';
     const AUTH_KEY = 'bodaAdminAuth';
 
@@ -232,15 +232,23 @@
 
     async function tryEnter(authHeader) {
       // No hay forma de "validar" credenciales sin llamar a algo protegido;
-      // usamos el propio webhook de borrado con un id inexistente: 401 =
-      // credenciales mal, 404 = credenciales bien (el endpoint ya respondió).
+      // usamos el propio webhook de borrado con un id inexistente. El nodo
+      // Respond to Webhook de ese workflow no reenvía el código de estado
+      // de media-service, solo el cuerpo -- así que con credenciales
+      // correctas SIEMPRE responde 200, sin importar si media-service
+      // devolvió 404 (id inexistente) o 200 por debajo (confirmado contra
+      // producción). Con credenciales incorrectas, el propio gate de Basic
+      // Auth de n8n responde 401/403 antes de llegar a ningún nodo del
+      // workflow. Por eso solo un 2xx cuenta como login válido: aceptar
+      // "cualquier cosa que no sea 401/403" también aceptaría, por ejemplo,
+      // un 404 de n8n porque el workflow no está publicado, o un 5xx.
       try {
         const res = await fetch(DELETE_WEBHOOK_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: authHeader },
           body: JSON.stringify({ id: '0_00000000000000000000000000000000' })
         });
-        return res.status !== 401 && res.status !== 403;
+        return res.status >= 200 && res.status < 300;
       } catch {
         return false;
       }
