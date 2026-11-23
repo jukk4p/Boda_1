@@ -45,7 +45,12 @@ function initGallery({ photoGridId, videoGridId, photoEmptyId, videoEmptyId, err
     img.src = item.gridUrl;
     img.alt = item.name || '';
     img.loading = 'lazy';
-    img.addEventListener('click', () => openLightbox(item.url));
+    // Chrome/Firefox/Android no pueden decodificar HEIC en un <img> — abrir
+    // el original (.heic) en el lightbox se ve como una imagen rota para
+    // cualquier invitado que no use Safari/iOS. item.gridUrl es siempre un
+    // JPEG (hasta 1600px, generado en el servidor), así que sirve bien
+    // también en el lightbox, no solo en el grid.
+    img.addEventListener('click', () => openLightbox(item.url.endsWith('.heic') ? item.gridUrl : item.url));
     tile.appendChild(img);
     return tile;
   }
