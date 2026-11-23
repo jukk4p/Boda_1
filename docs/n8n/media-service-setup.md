@@ -259,4 +259,127 @@ lo usa.
 
 ## Despliegue en Coolify
 
-*(Se completa en la Task 13 de este mismo plan — pendiente.)*
+**Recurso:** `media-service-gloria-jose`, proyecto Web / production, mismo
+servidor (`localhost`) que todo lo demás.
+
+- **Source:** Public Repository `https://github.com/jukk4p/Boda_1`, rama
+  `media-service-gloria-jose` (la rama de esta tarea — **no `master`**,
+  deliberado: el resto del sitio estático sigue sirviéndose desde `master`
+  hasta que esta rama se mezcle; ver la nota de "Frontend aún no
+  desplegado" más abajo).
+- **Build Pack:** Dockerfile. Base Directory `/media-service`, Dockerfile
+  Location por defecto (`/Dockerfile` relativo → `/media-service/Dockerfile`).
+  Ports Exposes: `3000` (puerto por defecto que propone Coolify, coincide
+  con el que escucha la app).
+- **Variable de entorno:** `PUBLIC_BASE_URL=https://bodagloriayjose.ivangonzalez.cloud/uploads`
+  — imprescindible; sin esto el código usa por defecto el dominio de
+  Daniel & Irene (`bodadaniyirene.ivangonzalez.cloud/uploads`), copiado tal
+  cual del fork en la Task 1.
+- **Almacenamiento persistente:** Directory Mount, Source
+  `/data/coolify/applications/<id-del-recurso>` → Destination
+  `/data/uploads` (coincide con `UPLOAD_ROOT` en `media-service/src/paths.js`).
+  **Sin esto cada redeploy borra todas las fotos/vídeos subidos** — se
+  encontró este bug durante la Task 13 (un redeploy de prueba vació la
+  galería por completo) y se corrigió antes de dar la tarea por cerrada.
+
+### Ruteo (Traefik) — dos gotchas reales encontrados
+
+El dominio `bodagloriayjose.ivangonzalez.cloud` ya lo sirve el sitio
+estático (`boda-gloria-jose`, nginx), con su propio router Traefik
+`Host(...) && PathPrefix(\`/\`)`. Para que las rutas de API de
+`media-service` lleguen a ese contenedor en el mismo dominio, el recurso
+`media-service-gloria-jose` lleva **Container Labels custom** (toggle
+"Readonly labels" desactivado) con dos routers Traefik propios (http y
+https) y prioridad explícita `100` para que ganen sobre el catch-all `/`
+del sitio estático:
+
+```
+traefik.http.routers.https-0-<id>.rule=Host(`bodagloriayjose.ivangonzalez.cloud`) && (Path(`/upload`) || PathPrefix(`/upload/chunk`) || Path(`/list`) || Path(`/unbacked`) || PathPrefix(`/backed`) || PathPrefix(`/items`) || Path(`/health`))
+traefik.http.routers.https-0-<id>.priority=100
+traefik.http.routers.https-0-<id>.tls=true
+traefik.http.routers.https-0-<id>.tls.certresolver=letsencrypt
+traefik.http.services.https-0-<id>.loadbalancer.server.port=3000
+```
+
+(Router http equivalente, mismo rule, `entryPoints=http`,
+`middlewares=redirect-to-https`, sin bloque TLS.)
+
+**Gotcha 1 — `PathPrefix` hace match de texto plano:**
+`PathPrefix(\`/upload\`)` también hace match de `/uploads/video/x.mp4`
+(es solo un prefijo de string). La primera versión de esta regla incluía
+`/upload` y `/uploads` como prefijos, lo que mandaba **también** los
+archivos binarios (`/uploads/originals/*`, `/uploads/video/*`, etc.) al
+contenedor de `media-service`.
+
+**Gotcha 2 — `media-service` no sirve archivos estáticos:** no hay ningún
+`express.static` en `server.js` — nunca lo hubo. `PUBLIC_BASE_URL` asume
+que **otro** contenedor sirve `/uploads/*` desde disco. Con el Gotcha 1 sin
+corregir, esas peticiones llegaban a `media-service`, que no tiene ruta
+para ellas → 404 de Express (no de nginx), fácil de confundir con "no está
+desplegado" si solo se mira el código de estado.
+
+**Arreglo:** la regla de arriba usa matchers exactos/prefijos precisos que
+**excluyen** `/uploads` a propósito, y el recurso `boda-gloria-jose`
+(sitio estático) lleva su propio Directory Mount: Source
+`/data/coolify/applications/<id-de-media-service>` (el mismo host-path
+donde escribe `media-service`) → Destination
+`/usr/share/nginx/html/uploads`. Así nginx sirve esos archivos como
+estáticos normales bajo su propio router `/`, sin que Traefik tenga que
+distinguir nada — es casi con toda seguridad el mismo patrón que tenía
+montado el `media-service` de Daniel & Irene antes de que se borrara su
+sitio estático de referencia (Coolify), que es por lo que no quedó ninguna
+config exacta que copiar.
+
+### Smoke test real (Task 13, Step 3)
+
+Subida de una foto real (71KB) y un vídeo forzando chunking (23.8MB,
+codecs deliberadamente incompatibles — mpeg4+mp3 — para forzar el remux
+real, no el atajo de "ya compatible"), hechas con peticiones reales desde
+el origen `https://bodagloriayjose.ivangonzalez.cloud` (fetch/XHR en
+consola del navegador, mismas formas de petición que usa `js/upload.js`)
+para validar CORS igual que lo haría un invitado real:
+
+- `POST /upload` → `202 processing` ✓
+- `POST /upload/chunk` × 5 chunks de 5MB → último chunk ensambla y
+  devuelve `202 processing` ✓
+- Tras ~15s de procesado: `GET /list` muestra ambos ítems completos (foto
+  con `width`/`height`, vídeo con `url` ya apuntando al mp4 remuxed y
+  `posterUrl` generado) ✓
+- Los 4 archivos resultantes (original, grid, vídeo remuxed, poster)
+  responden `200` reales desde `nginx/1.31.9` con los tamaños correctos ✓
+- `GET /unbacked` lista ambos ítems como pendientes de respaldo (confirma
+  que la capa de datos que consume el Workflow 2 de n8n está bien
+  conectada; la lógica de subida a Drive en sí ya se probó en vivo en la
+  Task 12 y no se repitió aquí) ✓
+- Limpieza: `DELETE /items/:id` en ambos — confirmado que desaparecen
+  tanto del manifest (`GET /list` → `[]`) como del disco (`404` en sus
+  URLs). Producción queda con la galería vacía, como estaba.
+
+**Lo que quedó pendiente de este Step 3:** el recorrido literal
+"subir desde `subir.html` real → ver en `galeria.html` real → borrar desde
+`admin.html` real" no se pudo hacer porque el sitio estático
+(`boda-gloria-jose`) todavía sirve el `js/upload.js` **viejo** (apunta al
+webhook de Drive ya desactivado en la Task 12) y ni siquiera tiene
+`admin.html` desplegado — esta rama (`media-service-gloria-jose`) no se ha
+mezclado a `master` todavía. Decisión explícita del usuario: mezclar a
+`master` primero y dejar que el sitio estático lo recoja con su despliegue
+normal, en vez de apuntar temporalmente ese recurso a esta rama. Repetir
+ese recorrido completo por UI después del merge + redeploy del sitio
+estático.
+
+### Step 4 — dejar inactivo hasta que se acerque la boda
+
+El recurso `media-service-gloria-jose` en Coolify queda **corriendo**
+ahora mismo (necesario para las pruebas y para cuando se mezcle la rama).
+Antes de la boda (31 de julio de 2027) no hace falta que esté activo —
+es un endpoint público sin autenticación en `/upload`, igual que el resto
+de esta arquitectura. Para reactivar más cerca de la fecha:
+
+1. Coolify → `Web` → `media-service-gloria-jose` → botón **Deploy/Start**
+   (si se paró con "Stop" en el Danger Zone o similar).
+2. Confirmar `GET https://bodagloriayjose.ivangonzalez.cloud/health` → `200`.
+3. Repetir el smoke test de subida de este documento con un archivo real.
+
+**No es necesario volver a tocar las labels de Traefik ni el volumen
+persistente** al reactivar — ambos ya quedan guardados en la configuración
+del recurso y sobreviven a un Stop/Start.
