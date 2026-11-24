@@ -198,33 +198,75 @@
     font-size: 0.68rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
     color: var(--muted); margin-top: 0.2rem;
   }
-  .table-wrap {
-    max-width: 920px; margin: 0 auto 2rem;
-    background: var(--paper); border-radius: 14px;
-    border: 1px solid rgba(180,134,76,0.25);
-    box-shadow: 0 4px 10px rgba(31,51,71,0.08);
-    overflow-x: auto;
-  }
-  .data-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
-  .data-table th, .data-table td { padding: 0.65rem 0.9rem; text-align: left; vertical-align: top; }
-  .data-table th {
-    background: var(--ink-deep); color: #e7ceae;
-    text-transform: uppercase; font-size: 0.66rem; letter-spacing: 0.06em; font-weight: 600;
-  }
-  .data-table tbody tr:nth-child(even) { background: rgba(180,134,76,0.06); }
-  .data-table tbody tr:not(:last-child) td { border-bottom: 1px solid rgba(180,134,76,0.15); }
-  .data-table td.col-fecha { color: var(--ink-soft); font-size: 0.76rem; white-space: nowrap; }
   .badge {
     display: inline-block; padding: 0.2rem 0.6rem; border-radius: 999px;
-    font-size: 0.72rem; font-weight: 600;
+    font-size: 0.72rem; font-weight: 600; white-space: nowrap;
   }
   .badge.is-yes { background: rgba(31,56,43,0.12); color: #1a382b; }
   .badge.is-no { background: rgba(166,65,58,0.1); color: var(--danger); }
-  .pill-row { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+  .pill-row { display: flex; flex-wrap: wrap; gap: 0.35rem; }
   .pill {
     display: inline-block; background: rgba(180,134,76,0.14); color: var(--gold-text);
-    border-radius: 999px; padding: 0.15rem 0.55rem; font-size: 0.72rem; font-weight: 600;
+    border-radius: 999px; padding: 0.2rem 0.6rem; font-size: 0.72rem; font-weight: 600;
     white-space: nowrap;
+  }
+
+  /* ── Record cards (RSVP / Alergias) ── */
+  .record-grid {
+    max-width: 920px; margin: 0 auto 2rem;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 0.8rem;
+  }
+  .record-card {
+    background: var(--paper); border-radius: 14px;
+    border: 1px solid rgba(180,134,76,0.25);
+    box-shadow: 0 4px 10px rgba(31,51,71,0.08);
+    padding: 0.9rem 1rem;
+    display: flex; flex-direction: column; gap: 0.5rem;
+  }
+  .record-head { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; }
+  .record-name { font-weight: 600; color: var(--ink-deep); font-size: 0.95rem; word-break: break-word; }
+  .record-meta { font-size: 0.74rem; color: var(--ink-soft); }
+  .record-body { font-size: 0.86rem; color: var(--charcoal); line-height: 1.45; }
+  .record-body .label { color: var(--muted); }
+  .record-actions { display: flex; gap: 0.5rem; margin-top: 0.2rem; }
+  .record-actions button {
+    flex: 1; font-family: 'Archivo', sans-serif; font-size: 0.74rem; font-weight: 600;
+    letter-spacing: 0.03em; border-radius: 8px; border: none; cursor: pointer;
+    padding: 0.55rem 0.7rem; min-height: 2.4rem;
+  }
+  .record-edit-btn { background: rgba(47,74,99,0.1); color: var(--ink-deep); }
+  .record-edit-btn:hover { background: rgba(47,74,99,0.18); }
+  .record-delete-btn { background: rgba(166,65,58,0.1); color: var(--danger); }
+  .record-delete-btn:hover { background: rgba(166,65,58,0.18); }
+  .record-save-btn { background: var(--ink-deep); color: #fff; }
+  .record-save-btn:hover { background: var(--ink); }
+  .record-cancel-btn { background: rgba(43,42,39,0.08); color: var(--charcoal); }
+  .record-cancel-btn:hover { background: rgba(43,42,39,0.14); }
+  .record-actions button:disabled { opacity: 0.55; cursor: wait; }
+
+  .record-edit-form { display: flex; flex-direction: column; gap: 0.55rem; }
+  .record-edit-form label {
+    display: flex; flex-direction: column; gap: 0.25rem;
+    font-size: 0.72rem; font-weight: 600; color: var(--muted);
+    letter-spacing: 0.02em;
+  }
+  .record-edit-form input[type="text"],
+  .record-edit-form input[type="number"] {
+    font-family: 'Archivo', sans-serif; font-size: 0.86rem; color: var(--charcoal);
+    border: 1px solid var(--mist); border-radius: 8px;
+    padding: 0.55rem 0.65rem; background: #fff;
+  }
+  .record-edit-form input:focus { outline: 2px solid var(--gold); outline-offset: 1px; }
+  .record-edit-form .check-row {
+    flex-direction: row; align-items: center; gap: 0.5rem;
+    font-size: 0.86rem; color: var(--charcoal); font-weight: 400;
+  }
+  .record-edit-form .check-row input { width: 1.1rem; height: 1.1rem; }
+
+  @media (max-width: 480px) {
+    body { padding: 1rem; }
+    .record-grid { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -268,23 +310,13 @@
 
     <div id="panel-rsvp" hidden>
       <div class="stat-row" id="rsvp-stats" hidden></div>
-      <div class="table-wrap">
-        <table class="data-table">
-          <thead><tr><th>Fecha</th><th>Nombre</th><th>Asiste</th><th>Acomp.</th><th>Nombres acompañantes</th></tr></thead>
-          <tbody id="rsvp-tbody"></tbody>
-        </table>
-      </div>
+      <div class="record-grid" id="rsvp-grid"></div>
       <p class="empty-state" id="rsvp-empty" hidden></p>
     </div>
 
     <div id="panel-alergias" hidden>
       <div class="stat-row" id="alergias-stats" hidden></div>
-      <div class="table-wrap">
-        <table class="data-table">
-          <thead><tr><th>Fecha</th><th>Persona</th><th>Tipos</th><th>Detalle</th></tr></thead>
-          <tbody id="alergias-tbody"></tbody>
-        </table>
-      </div>
+      <div class="record-grid" id="alergias-grid"></div>
       <p class="empty-state" id="alergias-empty" hidden></p>
     </div>
   </div>
@@ -304,6 +336,11 @@
     // RSVP + alergias: mismo panel, mismo login. El webhook GET devuelve JSON
     // (no ya el dashboard HTML que generaba antes n8n directamente).
     const FORM_DATA_URL = 'https://n8n.ivangonzalez.cloud/webhook/boda-admin';
+    // Editar/borrar una fila: mismo webhook para ambas acciones, distinguidas
+    // por el campo "accion" ('editar' | 'borrar'); identifican la fila por
+    // "timestamp", que es la clave de cada entrada en el .jsonl.
+    const RSVP_ADMIN_URL = 'https://n8n.ivangonzalez.cloud/webhook/boda-rsvp-admin';
+    const ALERGIAS_ADMIN_URL = 'https://n8n.ivangonzalez.cloud/webhook/boda-alergias-admin';
     const AUTH_KEY = 'bodaAdminAuth';
 
     const loginCard = document.getElementById('login-card');
@@ -329,12 +366,14 @@
       rsvp: 'Confirmaciones de asistencia',
       alergias: 'Alergias e intolerancias'
     };
-    const rsvpTbody = document.getElementById('rsvp-tbody');
+    const rsvpGrid = document.getElementById('rsvp-grid');
     const rsvpEmpty = document.getElementById('rsvp-empty');
     const rsvpStats = document.getElementById('rsvp-stats');
-    const alergiasTbody = document.getElementById('alergias-tbody');
+    const alergiasGrid = document.getElementById('alergias-grid');
     const alergiasEmpty = document.getElementById('alergias-empty');
     const alergiasStats = document.getElementById('alergias-stats');
+    let rsvpRows = [];
+    let alergiasRows = [];
 
     let selectMode = false;
     const selectedIds = new Set();
@@ -460,41 +499,225 @@
       return `<div class="stat-card"><div class="stat-value">${escapeHtml(value)}</div><div class="stat-label">${escapeHtml(label)}</div></div>`;
     }
 
-    function renderRsvp(rows, error) {
-      const sorted = byRecentFirst(rows);
-      rsvpTbody.innerHTML = sorted.map((r) => `
-        <tr>
-          <td class="col-fecha">${formatFecha(r.timestamp)}</td>
-          <td>${escapeHtml(r.nombre || '')}</td>
-          <td>${r.asiste ? '<span class="badge is-yes">Sí</span>' : '<span class="badge is-no">No</span>'}</td>
-          <td>${escapeHtml(r.acompanantes ?? 0)}</td>
-          <td>${escapeHtml((r.nombres_acompanantes || []).join(', '))}</td>
-        </tr>`).join('');
-      rsvpEmpty.hidden = rows.length > 0;
-      rsvpEmpty.textContent = error ? `No se pudo leer las confirmaciones (${error}).` : 'Sin confirmaciones todavía.';
+    async function postAdminAction(url, body) {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: getAuthHeader() },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(15000)
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error || 'error desconocido');
+      return data;
+    }
 
-      const asisten = rows.filter((r) => r.asiste).length;
-      const noAsisten = rows.length - asisten;
-      const acompanantes = rows.reduce((sum, r) => sum + (r.asiste ? (r.acompanantes || 0) : 0), 0);
-      rsvpStats.hidden = rows.length === 0;
-      rsvpStats.innerHTML = rows.length === 0 ? '' :
+    function renderRsvpStats() {
+      const asisten = rsvpRows.filter((r) => r.asiste).length;
+      const noAsisten = rsvpRows.length - asisten;
+      const acompanantes = rsvpRows.reduce((sum, r) => sum + (r.asiste ? (r.acompanantes || 0) : 0), 0);
+      rsvpStats.hidden = rsvpRows.length === 0;
+      rsvpStats.innerHTML = rsvpRows.length === 0 ? '' :
         statCard(asisten, 'Asisten') + statCard(noAsisten, 'No asisten') + statCard(asisten + acompanantes, 'Total invitados');
     }
 
+    function renderAlergiasStats() {
+      alergiasStats.hidden = alergiasRows.length === 0;
+      alergiasStats.innerHTML = alergiasRows.length === 0 ? '' : statCard(alergiasRows.length, 'Avisos registrados');
+    }
+
+    function rsvpViewHtml(entry) {
+      const acompText = entry.asiste
+        ? `<span class="label">Acompañantes:</span> ${escapeHtml(entry.acompanantes ?? 0)}` +
+          ((entry.nombres_acompanantes || []).length ? ` · ${escapeHtml((entry.nombres_acompanantes || []).join(', '))}` : '')
+        : '';
+      return `
+        <div class="record-head">
+          <span class="record-name">${escapeHtml(entry.nombre || '')}</span>
+          ${entry.asiste ? '<span class="badge is-yes">Sí asiste</span>' : '<span class="badge is-no">No asiste</span>'}
+        </div>
+        <div class="record-meta">${formatFecha(entry.timestamp)}</div>
+        <div class="record-body">${acompText}</div>
+        <div class="record-actions">
+          <button class="record-edit-btn" type="button">Editar</button>
+          <button class="record-delete-btn" type="button">Borrar</button>
+        </div>`;
+    }
+
+    function renderRsvpCard(card, entry) {
+      card.innerHTML = rsvpViewHtml(entry);
+      card.querySelector('.record-edit-btn').addEventListener('click', () => renderRsvpEditForm(card, entry));
+      card.querySelector('.record-delete-btn').addEventListener('click', () => handleRsvpDelete(card, entry));
+    }
+
+    function renderRsvpEditForm(card, entry) {
+      card.innerHTML = `
+        <div class="record-edit-form">
+          <label>Nombre
+            <input type="text" class="f-nombre" value="${escapeHtml(entry.nombre || '')}">
+          </label>
+          <label class="check-row">
+            <input type="checkbox" class="f-asiste" ${entry.asiste ? 'checked' : ''}> Asiste
+          </label>
+          <label>Acompañantes
+            <input type="number" min="0" class="f-acomp" value="${escapeHtml(entry.acompanantes ?? 0)}">
+          </label>
+          <label>Nombres acompañantes (separados por coma)
+            <input type="text" class="f-nombres-acomp" value="${escapeHtml((entry.nombres_acompanantes || []).join(', '))}">
+          </label>
+        </div>
+        <div class="record-actions">
+          <button class="record-save-btn" type="button">Guardar</button>
+          <button class="record-cancel-btn" type="button">Cancelar</button>
+        </div>`;
+      card.querySelector('.record-cancel-btn').addEventListener('click', () => renderRsvpCard(card, entry));
+      card.querySelector('.record-save-btn').addEventListener('click', () => handleRsvpSave(card, entry));
+    }
+
+    async function handleRsvpSave(card, entry) {
+      const saveBtn = card.querySelector('.record-save-btn');
+      const asiste = card.querySelector('.f-asiste').checked;
+      const body = {
+        timestamp: entry.timestamp,
+        accion: 'editar',
+        nombre: card.querySelector('.f-nombre').value.trim(),
+        asiste,
+        acompanantes: asiste ? Math.max(0, parseInt(card.querySelector('.f-acomp').value, 10) || 0) : 0,
+        nombres_acompanantes: asiste
+          ? card.querySelector('.f-nombres-acomp').value.split(',').map((n) => n.trim()).filter(Boolean)
+          : []
+      };
+      saveBtn.disabled = true;
+      try {
+        await postAdminAction(RSVP_ADMIN_URL, body);
+        Object.assign(entry, body);
+        renderRsvpCard(card, entry);
+        renderRsvpStats();
+      } catch (err) {
+        alert('No se pudo guardar. Comprueba la conexión e inténtalo de nuevo.');
+        saveBtn.disabled = false;
+      }
+    }
+
+    async function handleRsvpDelete(card, entry) {
+      if (!confirm(`¿Borrar la confirmación de ${entry.nombre || 'esta persona'}? Esta acción no se puede deshacer.`)) return;
+      card.querySelector('.record-delete-btn').disabled = true;
+      try {
+        await postAdminAction(RSVP_ADMIN_URL, { timestamp: entry.timestamp, accion: 'borrar' });
+        rsvpRows = rsvpRows.filter((r) => r.timestamp !== entry.timestamp);
+        card.remove();
+        renderRsvpStats();
+        rsvpEmpty.hidden = rsvpRows.length > 0;
+      } catch (err) {
+        alert('No se pudo borrar. Comprueba la conexión e inténtalo de nuevo.');
+        card.querySelector('.record-delete-btn').disabled = false;
+      }
+    }
+
+    function renderRsvp(rows, error) {
+      rsvpRows = byRecentFirst(rows);
+      rsvpGrid.innerHTML = '';
+      rsvpRows.forEach((entry) => {
+        const card = document.createElement('div');
+        card.className = 'record-card';
+        renderRsvpCard(card, entry);
+        rsvpGrid.appendChild(card);
+      });
+      rsvpEmpty.hidden = rows.length > 0;
+      rsvpEmpty.textContent = error ? `No se pudo leer las confirmaciones (${error}).` : 'Sin confirmaciones todavía.';
+      renderRsvpStats();
+    }
+
+    function alergiaViewHtml(entry) {
+      return `
+        <div class="record-head">
+          <span class="record-name">${escapeHtml(entry.nombre_persona || '')}</span>
+        </div>
+        <div class="record-meta">${formatFecha(entry.timestamp)}</div>
+        <div class="record-body">
+          <div class="pill-row">${(entry.tipos || []).map((t) => `<span class="pill">${escapeHtml(t)}</span>`).join('')}</div>
+          ${entry.detalle ? `<div style="margin-top:0.4rem">${escapeHtml(entry.detalle)}</div>` : ''}
+        </div>
+        <div class="record-actions">
+          <button class="record-edit-btn" type="button">Editar</button>
+          <button class="record-delete-btn" type="button">Borrar</button>
+        </div>`;
+    }
+
+    function renderAlergiaCard(card, entry) {
+      card.innerHTML = alergiaViewHtml(entry);
+      card.querySelector('.record-edit-btn').addEventListener('click', () => renderAlergiaEditForm(card, entry));
+      card.querySelector('.record-delete-btn').addEventListener('click', () => handleAlergiaDelete(card, entry));
+    }
+
+    function renderAlergiaEditForm(card, entry) {
+      card.innerHTML = `
+        <div class="record-edit-form">
+          <label>Persona
+            <input type="text" class="f-persona" value="${escapeHtml(entry.nombre_persona || '')}">
+          </label>
+          <label>Tipos (separados por coma)
+            <input type="text" class="f-tipos" value="${escapeHtml((entry.tipos || []).join(', '))}">
+          </label>
+          <label>Detalle
+            <input type="text" class="f-detalle" value="${escapeHtml(entry.detalle || '')}">
+          </label>
+        </div>
+        <div class="record-actions">
+          <button class="record-save-btn" type="button">Guardar</button>
+          <button class="record-cancel-btn" type="button">Cancelar</button>
+        </div>`;
+      card.querySelector('.record-cancel-btn').addEventListener('click', () => renderAlergiaCard(card, entry));
+      card.querySelector('.record-save-btn').addEventListener('click', () => handleAlergiaSave(card, entry));
+    }
+
+    async function handleAlergiaSave(card, entry) {
+      const saveBtn = card.querySelector('.record-save-btn');
+      const body = {
+        timestamp: entry.timestamp,
+        accion: 'editar',
+        nombre_persona: card.querySelector('.f-persona').value.trim(),
+        tipos: card.querySelector('.f-tipos').value.split(',').map((t) => t.trim()).filter(Boolean),
+        detalle: card.querySelector('.f-detalle').value.trim()
+      };
+      saveBtn.disabled = true;
+      try {
+        await postAdminAction(ALERGIAS_ADMIN_URL, body);
+        Object.assign(entry, body);
+        renderAlergiaCard(card, entry);
+      } catch (err) {
+        alert('No se pudo guardar. Comprueba la conexión e inténtalo de nuevo.');
+        saveBtn.disabled = false;
+      }
+    }
+
+    async function handleAlergiaDelete(card, entry) {
+      if (!confirm(`¿Borrar el aviso de ${entry.nombre_persona || 'esta persona'}? Esta acción no se puede deshacer.`)) return;
+      card.querySelector('.record-delete-btn').disabled = true;
+      try {
+        await postAdminAction(ALERGIAS_ADMIN_URL, { timestamp: entry.timestamp, accion: 'borrar' });
+        alergiasRows = alergiasRows.filter((a) => a.timestamp !== entry.timestamp);
+        card.remove();
+        renderAlergiasStats();
+        alergiasEmpty.hidden = alergiasRows.length > 0;
+      } catch (err) {
+        alert('No se pudo borrar. Comprueba la conexión e inténtalo de nuevo.');
+        card.querySelector('.record-delete-btn').disabled = false;
+      }
+    }
+
     function renderAlergias(rows, error) {
-      const sorted = byRecentFirst(rows);
-      alergiasTbody.innerHTML = sorted.map((a) => `
-        <tr>
-          <td class="col-fecha">${formatFecha(a.timestamp)}</td>
-          <td>${escapeHtml(a.nombre_persona || '')}</td>
-          <td><div class="pill-row">${(a.tipos || []).map((t) => `<span class="pill">${escapeHtml(t)}</span>`).join('')}</div></td>
-          <td>${escapeHtml(a.detalle || '')}</td>
-        </tr>`).join('');
+      alergiasRows = byRecentFirst(rows);
+      alergiasGrid.innerHTML = '';
+      alergiasRows.forEach((entry) => {
+        const card = document.createElement('div');
+        card.className = 'record-card';
+        renderAlergiaCard(card, entry);
+        alergiasGrid.appendChild(card);
+      });
       alergiasEmpty.hidden = rows.length > 0;
       alergiasEmpty.textContent = error ? `No se pudo leer los avisos (${error}).` : 'Sin avisos todavía.';
-
-      alergiasStats.hidden = rows.length === 0;
-      alergiasStats.innerHTML = rows.length === 0 ? '' : statCard(rows.length, 'Avisos registrados');
+      renderAlergiasStats();
     }
 
     async function loadFormData() {
