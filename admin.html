@@ -179,6 +179,25 @@
   .tab-btn.is-active { background: var(--ink-deep); color: #fff; border-color: var(--ink-deep); }
 
   /* ── Data tables (RSVP / Alergias) ── */
+  .stat-row {
+    max-width: 920px; margin: 0 auto 1.2rem;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.7rem;
+  }
+  .stat-card {
+    background: var(--paper); border-radius: 12px;
+    border: 1px solid rgba(180,134,76,0.25);
+    box-shadow: 0 4px 10px rgba(31,51,71,0.07);
+    padding: 0.75rem 1rem;
+  }
+  .stat-card .stat-value {
+    font-family: 'Fraunces', serif; font-weight: 600; font-size: 1.5rem;
+    color: var(--ink-deep); line-height: 1.1;
+  }
+  .stat-card .stat-label {
+    font-size: 0.68rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--muted); margin-top: 0.2rem;
+  }
   .table-wrap {
     max-width: 920px; margin: 0 auto 2rem;
     background: var(--paper); border-radius: 14px;
@@ -194,6 +213,19 @@
   }
   .data-table tbody tr:nth-child(even) { background: rgba(180,134,76,0.06); }
   .data-table tbody tr:not(:last-child) td { border-bottom: 1px solid rgba(180,134,76,0.15); }
+  .data-table td.col-fecha { color: var(--ink-soft); font-size: 0.76rem; white-space: nowrap; }
+  .badge {
+    display: inline-block; padding: 0.2rem 0.6rem; border-radius: 999px;
+    font-size: 0.72rem; font-weight: 600;
+  }
+  .badge.is-yes { background: rgba(31,56,43,0.12); color: #1a382b; }
+  .badge.is-no { background: rgba(166,65,58,0.1); color: var(--danger); }
+  .pill-row { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+  .pill {
+    display: inline-block; background: rgba(180,134,76,0.14); color: var(--gold-text);
+    border-radius: 999px; padding: 0.15rem 0.55rem; font-size: 0.72rem; font-weight: 600;
+    white-space: nowrap;
+  }
 </style>
 </head>
 <body>
@@ -235,6 +267,7 @@
     </div>
 
     <div id="panel-rsvp" hidden>
+      <div class="stat-row" id="rsvp-stats" hidden></div>
       <div class="table-wrap">
         <table class="data-table">
           <thead><tr><th>Fecha</th><th>Nombre</th><th>Asiste</th><th>Acomp.</th><th>Nombres acompañantes</th></tr></thead>
@@ -245,6 +278,7 @@
     </div>
 
     <div id="panel-alergias" hidden>
+      <div class="stat-row" id="alergias-stats" hidden></div>
       <div class="table-wrap">
         <table class="data-table">
           <thead><tr><th>Fecha</th><th>Persona</th><th>Tipos</th><th>Detalle</th></tr></thead>
@@ -297,8 +331,10 @@
     };
     const rsvpTbody = document.getElementById('rsvp-tbody');
     const rsvpEmpty = document.getElementById('rsvp-empty');
+    const rsvpStats = document.getElementById('rsvp-stats');
     const alergiasTbody = document.getElementById('alergias-tbody');
     const alergiasEmpty = document.getElementById('alergias-empty');
+    const alergiasStats = document.getElementById('alergias-stats');
 
     let selectMode = false;
     const selectedIds = new Set();
@@ -410,29 +446,55 @@
       return String(str).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     }
 
+    function formatFecha(iso) {
+      const d = new Date(iso);
+      if (isNaN(d.getTime())) return escapeHtml(iso || '');
+      return d.toLocaleString('es-ES', { timeZone: 'Europe/Madrid', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    }
+
+    function byRecentFirst(rows) {
+      return rows.slice().sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
+    }
+
+    function statCard(value, label) {
+      return `<div class="stat-card"><div class="stat-value">${escapeHtml(value)}</div><div class="stat-label">${escapeHtml(label)}</div></div>`;
+    }
+
     function renderRsvp(rows, error) {
-      rsvpTbody.innerHTML = rows.map((r) => `
+      const sorted = byRecentFirst(rows);
+      rsvpTbody.innerHTML = sorted.map((r) => `
         <tr>
-          <td>${escapeHtml(r.timestamp || '')}</td>
+          <td class="col-fecha">${formatFecha(r.timestamp)}</td>
           <td>${escapeHtml(r.nombre || '')}</td>
-          <td>${r.asiste ? 'Sí' : 'No'}</td>
+          <td>${r.asiste ? '<span class="badge is-yes">Sí</span>' : '<span class="badge is-no">No</span>'}</td>
           <td>${escapeHtml(r.acompanantes ?? 0)}</td>
           <td>${escapeHtml((r.nombres_acompanantes || []).join(', '))}</td>
         </tr>`).join('');
       rsvpEmpty.hidden = rows.length > 0;
       rsvpEmpty.textContent = error ? `No se pudo leer las confirmaciones (${error}).` : 'Sin confirmaciones todavía.';
+
+      const asisten = rows.filter((r) => r.asiste).length;
+      const noAsisten = rows.length - asisten;
+      const acompanantes = rows.reduce((sum, r) => sum + (r.asiste ? (r.acompanantes || 0) : 0), 0);
+      rsvpStats.hidden = rows.length === 0;
+      rsvpStats.innerHTML = rows.length === 0 ? '' :
+        statCard(asisten, 'Asisten') + statCard(noAsisten, 'No asisten') + statCard(asisten + acompanantes, 'Total invitados');
     }
 
     function renderAlergias(rows, error) {
-      alergiasTbody.innerHTML = rows.map((a) => `
+      const sorted = byRecentFirst(rows);
+      alergiasTbody.innerHTML = sorted.map((a) => `
         <tr>
-          <td>${escapeHtml(a.timestamp || '')}</td>
+          <td class="col-fecha">${formatFecha(a.timestamp)}</td>
           <td>${escapeHtml(a.nombre_persona || '')}</td>
-          <td>${escapeHtml((a.tipos || []).join(', '))}</td>
+          <td><div class="pill-row">${(a.tipos || []).map((t) => `<span class="pill">${escapeHtml(t)}</span>`).join('')}</div></td>
           <td>${escapeHtml(a.detalle || '')}</td>
         </tr>`).join('');
       alergiasEmpty.hidden = rows.length > 0;
       alergiasEmpty.textContent = error ? `No se pudo leer los avisos (${error}).` : 'Sin avisos todavía.';
+
+      alergiasStats.hidden = rows.length === 0;
+      alergiasStats.innerHTML = rows.length === 0 ? '' : statCard(rows.length, 'Avisos registrados');
     }
 
     async function loadFormData() {
