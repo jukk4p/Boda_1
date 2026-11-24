@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Administrar Galería · Boda Gloria &amp; José</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;0,500;0,600;1,400;1,500&family=Archivo:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --page:       #e8ece9;
+    --paper:      #f6f7f5;
+    --ink:        #2f4a63;
+    --ink-deep:   #1f3347;
+    --ink-soft:   #5c7893;
+    --gold:       #b4864c;
+    --gold-text:  #8a6636;
+    --charcoal:   #2b2a27;
+    --muted:      #6b7570;
+    --mist:       #dbe1de;
+    --danger:     #a6413a;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  [hidden] { display: none !important; }
+  body {
+    font-family: 'Archivo', sans-serif;
+    background: var(--page);
+    color: var(--charcoal);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    padding: 1.5rem;
+  }
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 1.4rem;
+    color: var(--ink-deep);
+    margin-bottom: 0.3rem;
+  }
+  .eyebrow {
+    font-size: 0.66rem; font-weight: 600;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--gold-text);
+    margin-bottom: 0.4rem;
+  }
+  .head { max-width: 920px; margin: 0 auto 1.4rem; }
+  .status-line { font-size: 0.82rem; color: var(--ink-soft); margin-top: 0.3rem; }
+
+  /* ── Login ── */
+  .login-card {
+    max-width: 360px; margin: 3rem auto;
+    background: var(--paper); border-radius: 18px;
+    border: 1px solid rgba(180,134,76,0.25);
+    box-shadow: 0 16px 36px rgba(31,51,71,0.12);
+    padding: 1.8rem;
+    text-align: center;
+  }
+  .login-card p { font-size: 0.85rem; color: var(--muted); margin: 0.4rem 0 1.2rem; line-height: 1.5; }
+  .login-card input {
+    width: 100%; padding: 0.65rem 0.8rem; margin-bottom: 0.7rem;
+    border: 1px solid var(--mist); border-radius: 10px;
+    font-family: 'Archivo', sans-serif; font-size: 0.9rem;
+    background: #fff; color: var(--charcoal);
+  }
+  .login-card input:focus { outline: 2px solid var(--gold); outline-offset: 1px; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
+    width: 100%;
+    background: var(--ink-deep); color: #fff; border: none;
+    font-family: 'Archivo', sans-serif; font-size: 0.78rem; font-weight: 600;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 0.7rem 1rem; border-radius: 10px;
+    cursor: pointer;
+  }
+  .btn:hover { background: var(--ink); }
+  .login-error { color: var(--danger); font-size: 0.8rem; margin-top: 0.6rem; }
+
+  /* ── Grid ── */
+  .toolbar {
+    max-width: 920px; margin: 0 auto 1rem;
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .toolbar-left { display: flex; align-items: center; gap: 0.9rem; }
+  .select-toggle {
+    background: none; border: 1px solid rgba(180,134,76,0.4); border-radius: 8px;
+    font-family: 'Archivo', sans-serif; font-size: 0.72rem; font-weight: 600;
+    letter-spacing: 0.04em; color: var(--ink);
+    padding: 0.4rem 0.8rem; cursor: pointer;
+  }
+  .select-toggle:hover { background: rgba(180,134,76,0.1); }
+  .select-toggle.is-active { background: var(--ink-deep); color: #fff; border-color: var(--ink-deep); }
+  .logout-link {
+    font-size: 0.72rem; color: var(--gold-text); text-decoration: none;
+    border-bottom: 1px solid transparent;
+  }
+  .logout-link:hover { border-color: var(--gold-text); }
+  .grid {
+    max-width: 920px; margin: 0 auto 5.5rem;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 0.7rem;
+  }
+  .tile {
+    position: relative; border-radius: 12px; overflow: hidden;
+    aspect-ratio: 1; background: var(--mist);
+    border: 1px solid rgba(180,134,76,0.25);
+    box-shadow: 0 4px 10px rgba(31,51,71,0.1);
+  }
+  .tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .tile .del-btn {
+    position: absolute; top: 6px; right: 6px;
+    width: 28px; height: 28px; border-radius: 50%;
+    background: rgba(31,51,71,0.75); color: #fff; border: none;
+    font-size: 0.95rem; line-height: 1; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s ease, transform 0.15s ease;
+  }
+  .tile .del-btn:hover { background: var(--danger); transform: scale(1.06); }
+  .tile .del-btn:disabled { opacity: 0.5; cursor: wait; }
+  .tile .select-box {
+    position: absolute; top: 6px; left: 6px;
+    width: 24px; height: 24px; border-radius: 50%;
+    background: rgba(31,51,71,0.55); border: 2px solid rgba(255,255,255,0.85);
+    cursor: pointer; display: none;
+    align-items: center; justify-content: center;
+  }
+  body.select-mode .tile .select-box { display: flex; }
+  body.select-mode .tile .del-btn { display: none; }
+  .tile.is-selected .select-box { background: var(--gold); border-color: var(--gold); }
+  .tile.is-selected .select-box::after {
+    content: ''; width: 9px; height: 5px;
+    border-left: 2px solid #fff; border-bottom: 2px solid #fff;
+    transform: rotate(-45deg) translateY(-1px);
+  }
+  .tile.is-selected { outline: 2px solid var(--gold); outline-offset: 2px; }
+  .tile.video-tile::after {
+    content: '▶'; position: absolute; bottom: 6px; left: 6px;
+    color: #fff; font-size: 0.7rem;
+    background: rgba(31,51,71,0.65); border-radius: 50%;
+    width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;
+  }
+  body.select-mode .tile.video-tile::after { left: auto; right: 6px; bottom: 6px; top: auto; }
+  .empty-state { max-width: 920px; margin: 2rem auto; text-align: center; color: var(--muted); font-size: 0.9rem; }
+
+  /* ── Bulk bar ── */
+  .bulk-bar {
+    position: fixed; left: 0; right: 0; bottom: 0;
+    background: var(--ink-deep); color: #fff;
+    padding: 0.9rem 1.5rem;
+    display: flex; align-items: center; justify-content: center; gap: 1.2rem;
+    box-shadow: 0 -6px 18px rgba(31,51,71,0.25);
+  }
+  .bulk-bar span { font-size: 0.85rem; }
+  .bulk-bar button {
+    font-family: 'Archivo', sans-serif; font-size: 0.75rem; font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    border-radius: 8px; padding: 0.55rem 1rem; cursor: pointer; border: none;
+  }
+  .bulk-bar .bulk-delete-btn { background: var(--danger); color: #fff; }
+  .bulk-bar .bulk-delete-btn:hover { background: #8c352f; }
+  .bulk-bar .bulk-delete-btn:disabled { opacity: 0.5; cursor: wait; }
+  .bulk-bar .bulk-cancel-btn { background: rgba(255,255,255,0.15); color: #fff; }
+  .bulk-bar .bulk-cancel-btn:hover { background: rgba(255,255,255,0.25); }
+</style>
+</head>
+<body>
+
+  <div class="login-card" id="login-card">
+    <p class="eyebrow">Acceso privado</p>
+    <h1>Administrar Galería</h1>
+    <p>Introduce las credenciales del panel para poder borrar fotos y vídeos.</p>
+    <input type="text" id="login-user" placeholder="Usuario" autocomplete="username">
+    <input type="password" id="login-pass" placeholder="Contraseña" autocomplete="current-password">
+    <button class="btn" id="login-btn" type="button">Entrar</button>
+    <p class="login-error" id="login-error" hidden>Credenciales incorrectas.</p>
+  </div>
+
+  <div id="admin-app" hidden>
+    <div class="head">
+      <p class="eyebrow">Gloria &amp; José · Panel</p>
+      <h1>Administrar Galería</h1>
+      <p class="status-line" id="status-line">Cargando…</p>
+    </div>
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <button class="select-toggle" id="select-toggle" type="button">Seleccionar varios</button>
+      </div>
+      <a class="logout-link" id="logout-link" href="#">Cerrar sesión</a>
+    </div>
+    <div class="grid" id="grid"></div>
+    <p class="empty-state" id="empty-state" hidden>No hay fotos ni vídeos todavía.</p>
+  </div>
+
+  <div class="bulk-bar" id="bulk-bar" hidden>
+    <span id="bulk-count">0 seleccionados</span>
+    <button class="bulk-delete-btn" id="bulk-delete-btn" type="button">Borrar seleccionados</button>
+    <button class="bulk-cancel-btn" id="bulk-cancel-btn" type="button">Cancelar</button>
+  </div>
+
+  <script>
+    // Listado: mismo webhook público que usa galeria.html (solo lectura).
+    const LIST_WEBHOOK_URL = 'https://n8n.ivangonzalez.cloud/webhook/boda-gj-galeria';
+    // Borrado: webhook nuevo, protegido con Basic Auth en n8n. Reenvía a
+    // media-service -> DELETE /items/:id.
+    const DELETE_WEBHOOK_URL = 'https://n8n.ivangonzalez.cloud/webhook/boda-gj-borrar';
+    const AUTH_KEY = 'bodaAdminAuth';
+
+    const loginCard = document.getElementById('login-card');
+    const adminApp = document.getElementById('admin-app');
+    const loginError = document.getElementById('login-error');
+    const statusLine = document.getElementById('status-line');
+    const grid = document.getElementById('grid');
+    const emptyState = document.getElementById('empty-state');
+    const selectToggle = document.getElementById('select-toggle');
+    const bulkBar = document.getElementById('bulk-bar');
+    const bulkCount = document.getElementById('bulk-count');
+    const bulkDeleteBtn = document.getElementById('bulk-delete-btn');
+    const bulkCancelBtn = document.getElementById('bulk-cancel-btn');
+
+    let selectMode = false;
+    const selectedIds = new Set();
+    let itemsById = new Map();
+
+    function uploadTimestamp(id) {
+      const match = /^(\d+)_/.exec(id || '');
+      return match ? parseInt(match[1], 10) : 0;
+    }
+
+    function getAuthHeader() {
+      return sessionStorage.getItem(AUTH_KEY);
+    }
+
+    async function tryEnter(authHeader) {
+      // No hay forma de "validar" credenciales sin llamar a algo protegido;
+      // usamos el propio webhook de borrado con un id inexistente. El nodo
+      // Respond to Webhook de ese workflow no reenvía el código de estado
+      // de media-service, solo el cuerpo -- así que con credenciales
+      // correctas SIEMPRE responde 200, sin importar si media-service
+      // devolvió 404 (id inexistente) o 200 por debajo (confirmado contra
+      // producción). Con credenciales incorrectas, el propio gate de Basic
+      // Auth de n8n responde 401/403 antes de llegar a ningún nodo del
+      // workflow. Por eso solo un 2xx cuenta como login válido: aceptar
+      // "cualquier cosa que no sea 401/403" también aceptaría, por ejemplo,
+      // un 404 de n8n porque el workflow no está publicado, o un 5xx.
+      try {
+        const res = await fetch(DELETE_WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: authHeader },
+          body: JSON.stringify({ id: '0_00000000000000000000000000000000' })
+        });
+        return res.status >= 200 && res.status < 300;
+      } catch {
+        return false;
+      }
+    }
+
+    async function loadGrid() {
+      statusLine.textContent = 'Cargando…';
+      try {
+        const res = await fetch(LIST_WEBHOOK_URL, { signal: AbortSignal.timeout(15000) });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const items = await res.json();
+        render(Array.isArray(items) ? items : []);
+      } catch (err) {
+        statusLine.textContent = 'Error al cargar el listado. Reintenta recargando la página.';
+      }
+    }
+
+    function render(items) {
+      const sorted = items.slice().sort((a, b) => uploadTimestamp(b.id) - uploadTimestamp(a.id));
+      grid.innerHTML = '';
+      emptyState.hidden = sorted.length > 0;
+      const photoCount = sorted.filter(i => i.mimeType && i.mimeType.startsWith('image/')).length;
+      const videoCount = sorted.filter(i => i.mimeType && i.mimeType.startsWith('video/')).length;
+      statusLine.textContent = `${photoCount} foto(s) · ${videoCount} vídeo(s)`;
+
+      itemsById = new Map();
+      // Un borrado puede haber quitado items de la selección; purgamos los
+      // que ya no existan para no arrastrar ids fantasma en el contador.
+      const liveIds = new Set(sorted.map((i) => i.id));
+      Array.from(selectedIds).forEach((id) => { if (!liveIds.has(id)) selectedIds.delete(id); });
+
+      sorted.forEach((item) => {
+        itemsById.set(item.id, item);
+        const isVideo = item.mimeType && item.mimeType.startsWith('video/');
+        const thumbUrl = isVideo ? item.posterUrl : item.gridUrl;
+        if (!thumbUrl) return;
+
+        const tile = document.createElement('div');
+        tile.className = isVideo ? 'tile video-tile' : 'tile';
+        if (selectedIds.has(item.id)) tile.classList.add('is-selected');
+        tile.dataset.id = item.id;
+
+        const img = document.createElement('img');
+        img.src = thumbUrl;
+        img.alt = item.name || '';
+        img.loading = 'lazy';
+        tile.appendChild(img);
+
+        const selectBox = document.createElement('button');
+        selectBox.className = 'select-box';
+        selectBox.type = 'button';
+        selectBox.setAttribute('aria-label', 'Seleccionar');
+        selectBox.addEventListener('click', () => toggleSelect(item.id, tile));
+        tile.appendChild(selectBox);
+
+        const delBtn = document.createElement('button');
+        delBtn.className = 'del-btn';
+        delBtn.type = 'button';
+        delBtn.textContent = '✕';
+        delBtn.setAttribute('aria-label', 'Borrar');
+        delBtn.addEventListener('click', () => handleDelete(item, tile, delBtn));
+        tile.appendChild(delBtn);
+
+        tile.addEventListener('click', (e) => {
+          if (selectMode && e.target === tile) toggleSelect(item.id, tile);
+        });
+
+        grid.appendChild(tile);
+      });
+
+      updateBulkBar();
+    }
+
+    function setSelectMode(on) {
+      selectMode = on;
+      document.body.classList.toggle('select-mode', on);
+      selectToggle.classList.toggle('is-active', on);
+      selectToggle.textContent = on ? 'Cancelar selección' : 'Seleccionar varios';
+      if (!on) {
+        selectedIds.clear();
+        grid.querySelectorAll('.tile.is-selected').forEach((t) => t.classList.remove('is-selected'));
+      }
+      updateBulkBar();
+    }
+
+    function toggleSelect(id, tile) {
+      if (selectedIds.has(id)) {
+        selectedIds.delete(id);
+        tile.classList.remove('is-selected');
+      } else {
+        selectedIds.add(id);
+        tile.classList.add('is-selected');
+      }
+      updateBulkBar();
+    }
+
+    function updateBulkBar() {
+      const n = selectedIds.size;
+      bulkBar.hidden = !selectMode || n === 0;
+      bulkCount.textContent = n === 1 ? '1 seleccionado' : `${n} seleccionados`;
+    }
+
+    async function deleteById(id) {
+      const res = await fetch(DELETE_WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: getAuthHeader() },
+        body: JSON.stringify({ id }),
+        signal: AbortSignal.timeout(15000)
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+    }
+
+    async function handleDelete(item, tile, delBtn) {
+      const label = item.name || 'este archivo';
+      if (!confirm(`¿Borrar ${label}? Esta acción no se puede deshacer.`)) return;
+
+      delBtn.disabled = true;
+      try {
+        await deleteById(item.id);
+        tile.remove();
+        itemsById.delete(item.id);
+        if (!grid.children.length) emptyState.hidden = false;
+      } catch (err) {
+        alert('No se pudo borrar. Comprueba la conexión e inténtalo de nuevo.');
+        delBtn.disabled = false;
+      }
+    }
+
+    async function handleBulkDelete() {
+      const ids = Array.from(selectedIds);
+      if (ids.length === 0) return;
+      const confirmMsg = ids.length === 1
+        ? '¿Borrar 1 archivo? Esta acción no se puede deshacer.'
+        : `¿Borrar estos ${ids.length} archivos? Esta acción no se puede deshacer.`;
+      if (!confirm(confirmMsg)) return;
+
+      bulkDeleteBtn.disabled = true;
+      let okCount = 0;
+      let failCount = 0;
+      // Secuencial a propósito: no bombardear el webhook con N borrados en
+      // paralelo durante el día de la boda, con posibles subidas a la vez.
+      for (let i = 0; i < ids.length; i++) {
+        const id = ids[i];
+        bulkCount.textContent = `Borrando ${i + 1}/${ids.length}…`;
+        try {
+          await deleteById(id);
+          okCount++;
+          const tile = grid.querySelector(`.tile[data-id="${id}"]`);
+          if (tile) tile.remove();
+          itemsById.delete(id);
+          selectedIds.delete(id);
+        } catch (err) {
+          failCount++;
+        }
+      }
+      bulkDeleteBtn.disabled = false;
+      if (!grid.children.length) emptyState.hidden = false;
+      if (failCount > 0) {
+        alert(`${okCount} borrado(s), ${failCount} con error. Reintenta con los que queden seleccionados.`);
+      }
+      updateBulkBar();
+    }
+
+    function enterApp() {
+      loginCard.hidden = true;
+      adminApp.hidden = false;
+      loadGrid();
+    }
+
+    document.getElementById('login-btn').addEventListener('click', async () => {
+      const user = document.getElementById('login-user').value.trim();
+      const pass = document.getElementById('login-pass').value;
+      if (!user || !pass) return;
+      const authHeader = 'Basic ' + btoa(`${user}:${pass}`);
+      loginError.hidden = true;
+      document.getElementById('login-btn').textContent = 'Comprobando…';
+      const ok = await tryEnter(authHeader);
+      document.getElementById('login-btn').textContent = 'Entrar';
+      if (ok) {
+        sessionStorage.setItem(AUTH_KEY, authHeader);
+        enterApp();
+      } else {
+        loginError.hidden = false;
+      }
+    });
+
+    document.getElementById('login-pass').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') document.getElementById('login-btn').click();
+    });
+
+    selectToggle.addEventListener('click', () => setSelectMode(!selectMode));
+    bulkCancelBtn.addEventListener('click', () => setSelectMode(false));
+    bulkDeleteBtn.addEventListener('click', handleBulkDelete);
+
+    document.getElementById('logout-link').addEventListener('click', (e) => {
+      e.preventDefault();
+      sessionStorage.removeItem(AUTH_KEY);
+      setSelectMode(false);
+      adminApp.hidden = true;
+      loginCard.hidden = false;
+      document.getElementById('login-pass').value = '';
+    });
+
+    const existingAuth = getAuthHeader();
+    if (existingAuth) enterApp();
+  </script>
+</body>
+</html>

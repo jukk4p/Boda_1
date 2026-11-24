@@ -1,7 +1,7 @@
-// Lógica de la galería en vivo: sincroniza con la carpeta de Drive vía el
-// webhook de listado de n8n. Usada por galeria.html.
+// Lógica de la galería en vivo: sincroniza con el listado de media-service
+// (nuestro propio servidor, sin pasar por Drive/n8n). Usada por galeria.html.
 
-const GALLERY_WEBHOOK_URL = 'https://n8n.ivangonzalez.cloud/webhook/boda-fotos-galeria';
+const GALLERY_LIST_URL = 'https://bodagloriayjose.ivangonzalez.cloud/list';
 const GALLERY_POLL_INTERVAL_MS = 20000;
 const GALLERY_SKELETON_COUNT = 6;
 
@@ -19,11 +19,10 @@ function initGallery({ photoGridId, videoGridId, photoEmptyId, videoEmptyId, err
   let pollTimer = null;
   let firstLoadDone = false;
 
-  // Los archivos se suben con el nombre prefijado por su timestamp
-  // ({{$now.toMillis()}}_nombre) — lo usamos para ordenar sin depender de
-  // metadatos adicionales de Drive.
-  function uploadTimestamp(name) {
-    const match = /^(\d+)_/.exec(name || '');
+  // media-service genera cada `id` como {timestamp}_{hex} — lo usamos para
+  // ordenar sin depender de metadatos adicionales.
+  function idTimestamp(id) {
+    const match = /^(\d+)_/.exec(id || '');
     return match ? parseInt(match[1], 10) : 0;
   }
 
@@ -43,15 +42,15 @@ function initGallery({ photoGridId, videoGridId, photoEmptyId, videoEmptyId, err
     const tile = document.createElement('div');
     tile.className = 'gallery-tile';
     const img = document.createElement('img');
-    img.src = `https://drive.google.com/thumbnail?id=${item.id}&sz=w800`;
+    img.src = item.gridUrl;
     img.alt = item.name || '';
     img.loading = 'lazy';
-    // El endpoint de miniaturas aplica rate-limiting agresivo a peticiones
-    // anónimas repetidas; si falla, se cae a la vista completa del archivo.
-    img.addEventListener('error', () => {
-      img.src = `https://drive.google.com/uc?export=view&id=${item.id}`;
-    }, { once: true });
-    img.addEventListener('click', () => openLightbox(item.id));
+    // Chrome/Firefox/Android no pueden decodificar HEIC en un <img> — abrir
+    // el original (.heic) en el lightbox se ve como una imagen rota para
+    // cualquier invitado que no use Safari/iOS. item.gridUrl es siempre un
+    // JPEG (hasta 1600px, generado en el servidor), así que sirve bien
+    // también en el lightbox, no solo en el grid.
+    img.addEventListener('click', () => openLightbox(item.url.endsWith('.heic') ? item.gridUrl : item.url));
     tile.appendChild(img);
     return tile;
   }
@@ -60,32 +59,22 @@ function initGallery({ photoGridId, videoGridId, photoEmptyId, videoEmptyId, err
     const tile = document.createElement('div');
     tile.className = 'gallery-tile video-tile';
 
-    const iframe = document.createElement('iframe');
-    iframe.src = `https://drive.google.com/file/d/${item.id}/preview`;
-    iframe.allow = 'autoplay';
-    iframe.loading = 'lazy';
-    tile.appendChild(iframe);
-
-    // Drive dibuja un pequeño icono de "abrir en Drive" en la esquina
-    // superior derecha de su visor embebido; no podemos ocultarlo (es
-    // contenido de otro origen), pero sí interceptar el clic para que
-    // nadie salga de la página sin querer.
-    const shield = document.createElement('div');
-    shield.className = 'video-shield';
-    tile.appendChild(shield);
+    const video = document.createElement('video');
+    video.src = item.url;
+    video.poster = item.posterUrl;
+    video.controls = true;
+    video.preload = 'metadata';
+    tile.appendChild(video);
 
     return tile;
   }
 
-  function openLightbox(id) {
+  function openLightbox(url) {
     const overlay = document.createElement('div');
     overlay.className = 'gallery-lightbox';
 
     const img = document.createElement('img');
-    img.src = `https://drive.google.com/thumbnail?id=${id}&sz=w1600`;
-    img.addEventListener('error', () => {
-      img.src = `https://drive.google.com/uc?export=view&id=${id}`;
-    }, { once: true });
+    img.src = url;
 
     const close = document.createElement('button');
     close.className = 'lightbox-close';
@@ -113,8 +102,8 @@ function initGallery({ photoGridId, videoGridId, photoEmptyId, videoEmptyId, err
 
   function render(items) {
     const validItems = items.filter(item => item.mimeType && (item.mimeType.startsWith('image/') || item.mimeType.startsWith('video/')));
-    const photos = validItems.filter(item => item.mimeType.startsWith('image/')).sort((a, b) => uploadTimestamp(b.name) - uploadTimestamp(a.name));
-    const videos = validItems.filter(item => item.mimeType.startsWith('video/')).sort((a, b) => uploadTimestamp(b.name) - uploadTimestamp(a.name));
+    const photos = validItems.filter(item => item.mimeType.startsWith('image/')).sort((a, b) => idTimestamp(b.id) - idTimestamp(a.id));
+    const videos = validItems.filter(item => item.mimeType.startsWith('video/')).sort((a, b) => idTimestamp(b.id) - idTimestamp(a.id));
 
     if (!firstLoadDone) {
       clearSkeletons(photoGrid);
@@ -139,7 +128,7 @@ function initGallery({ photoGridId, videoGridId, photoEmptyId, videoEmptyId, err
 
   async function fetchAndRender() {
     try {
-      const res = await fetch(GALLERY_WEBHOOK_URL, { signal: AbortSignal.timeout(15000) });
+      const res = await fetch(GALLERY_LIST_URL, { signal: AbortSignal.timeout(15000) });
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const items = await res.json();
       render(Array.isArray(items) ? items : []);

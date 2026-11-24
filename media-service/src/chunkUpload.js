@@ -1,0 +1,176 @@
+const fs = require('fs');
+const path = require('path').posix;
+const paths = require('./paths');
+
+const CHUNK_EXT = '.part';
+const META_FILE = 'meta.json';
+
+// uploadId becomes a single path segment under UPLOAD_ROOT/chunks/, so it must
+// not contain '/', '\', or '..' — otherwise it could resolve outside that
+// directory (path traversal). Mirrors the id-shape guard DELETE /items/:id
+// uses in server.js, but kept permissive enough for any id generator Task 7
+// ends up using (not just generateId()'s exact timestamp_hex32 shape).
+const SAFE_UPLOAD_ID = /^[A-Za-z0-9_-]+$/;
+
+function assertSafeUploadId(uploadId) {
+  if (typeof uploadId !== 'string' || !SAFE_UPLOAD_ID.test(uploadId)) {
+    throw new Error(`invalid uploadId: ${JSON.stringify(uploadId)}`);
+  }
+}
+
+// chunkIndex becomes a filename (`${chunkIndex}.part`), so it must be a
+// non-negative integer — never a string that could smuggle '/' or '..'.
+function assertSafeChunkIndex(chunkIndex) {
+  if (!Number.isInteger(chunkIndex) || chunkIndex < 0) {
+    throw new Error(`invalid chunkIndex: ${JSON.stringify(chunkIndex)}`);
+  }
+}
+
+const chunksRoot = () => path.join(paths.UPLOAD_ROOT, 'chunks');
+const sessionDir = (uploadId) => path.join(chunksRoot(), uploadId);
+const sessionMetaPath = (uploadId) => path.join(sessionDir(uploadId), META_FILE);
+const chunkPath = (uploadId, chunkIndex) => path.join(sessionDir(uploadId), `${chunkIndex}${CHUNK_EXT}`);
+const COMPLETED_EXT = '.completed.json';
+// Lives directly under chunksRoot(), not inside sessionDir(uploadId): that
+// directory is deleted by assembleIfComplete the moment assembly finishes,
+// but the tombstone needs to outlive it so a retried final chunk (lost ack)
+// still finds it.
+const completionPath = (uploadId) => path.join(chunksRoot(), `${uploadId}${COMPLETED_EXT}`);
+
+function readMeta(uploadId) {
+  const metaFile = sessionMetaPath(uploadId);
+  if (!fs.existsSync(metaFile)) return null;
+  try {
+    return JSON.parse(fs.readFileSync(metaFile, 'utf8'));
+  } catch {
+    return null;
+  }
+}
+
+// Starts a new chunked-upload session, or returns the existing one unchanged
+// if it was already started (so a retried "start" request is a no-op).
+function startOrGetSession(uploadId, totalChunks, filename, mimetype) {
+  assertSafeUploadId(uploadId);
+  const existing = readMeta(uploadId);
+  if (existing) return existing;
+
+  fs.mkdirSync(sessionDir(uploadId), { recursive: true });
+  const info = { uploadId, totalChunks, filename, mimetype };
+  fs.writeFileSync(sessionMetaPath(uploadId), JSON.stringify(info));
+  return info;
+}
+
+// Returns the chunk indices actually present on disk for this session, sorted
+// ascending, so a client can resume by asking for what's missing.
+function receivedChunks(uploadId) {
+  assertSafeUploadId(uploadId);
+  const dir = sessionDir(uploadId);
+  if (!fs.existsSync(dir)) return [];
+  return fs.readdirSync(dir)
+    .filter((name) => name.endsWith(CHUNK_EXT))
+    .map((name) => parseInt(name.slice(0, -CHUNK_EXT.length), 10))
+    .filter((n) => Number.isInteger(n))
+    .sort((a, b) => a - b);
+}
+
+// Writes (or overwrites) one chunk. Re-sending the same chunkIndex just
+// replaces that chunk's file in place, so it never duplicates data.
+function writeChunk(uploadId, chunkIndex, buffer) {
+  assertSafeUploadId(uploadId);
+  assertSafeChunkIndex(chunkIndex);
+  fs.mkdirSync(sessionDir(uploadId), { recursive: true });
+  fs.writeFileSync(chunkPath(uploadId, chunkIndex), buffer);
+
+  const received = receivedChunks(uploadId);
+  const meta = readMeta(uploadId);
+  const complete = !!meta && received.length === meta.totalChunks;
+  return { receivedChunks: received, complete };
+}
+
+// Concatenates chunks 0..totalChunks-1 (numeric order, regardless of the
+// order they were written in) into a single file once all of them are
+// present, then deletes the session directory. Returns null while chunks
+// are still missing.
+function assembleIfComplete(uploadId) {
+  assertSafeUploadId(uploadId);
+  const meta = readMeta(uploadId);
+  if (!meta) return null;
+
+  const received = receivedChunks(uploadId);
+  if (received.length !== meta.totalChunks) return null;
+
+  // Assembled file lives next to (not inside) the per-session directory,
+  // since that directory is deleted as soon as assembly finishes.
+  const outputPath = path.join(chunksRoot(), `${uploadId}-${path.basename(meta.filename)}`);
+  const fd = fs.openSync(outputPath, 'w');
+  try {
+    for (let i = 0; i < meta.totalChunks; i++) {
+      fs.writeSync(fd, fs.readFileSync(chunkPath(uploadId, i)));
+    }
+  } finally {
+    fs.closeSync(fd);
+  }
+
+  fs.rmSync(sessionDir(uploadId), { recursive: true, force: true });
+  return outputPath;
+}
+
+// Tombstone written once a chunked upload's final chunk has been fully
+// assembled and handed off to the processing pipeline. Without this, a
+// retried POST of that same final chunk (its 202 ack lost in transit on
+// patchy wifi, exactly the condition the client's retry/backoff exists
+// for) would find sessionDir(uploadId) already gone -- deleted by
+// assembleIfComplete -- and startOrGetSession would silently start a new,
+// broken one-chunk session that can never reach totalChunks. The tombstone
+// lets both a retried final chunk and a reload-triggered status check
+// recognize "this uploadId already finished" instead of "never started".
+//
+// No expiry/sweep for these files (unlike sweepAbandoned for session
+// dirs): each is one tiny JSON file, written once per completed
+// over-CHUNK_THRESHOLD_BYTES upload for this wedding's lifetime -- not
+// worth the added complexity of a cleanup pass.
+function markCompleted(uploadId, id) {
+  assertSafeUploadId(uploadId);
+  fs.mkdirSync(chunksRoot(), { recursive: true });
+  fs.writeFileSync(completionPath(uploadId), JSON.stringify({ id }));
+}
+
+// Returns { id } if this uploadId was already completed, or null if not
+// (the normal/common case for any in-progress or never-started upload --
+// not an error). Only a malformed uploadId throws, via assertSafeUploadId,
+// consistent with every other function in this file.
+function getCompletion(uploadId) {
+  assertSafeUploadId(uploadId);
+  const file = completionPath(uploadId);
+  if (!fs.existsSync(file)) return null;
+  try {
+    return JSON.parse(fs.readFileSync(file, 'utf8'));
+  } catch {
+    return null;
+  }
+}
+
+// Deletes session directories whose own mtime is older than maxAgeMs (i.e.
+// sessions nobody has written a chunk to recently) and returns their ids.
+function sweepAbandoned(maxAgeMs) {
+  const root = chunksRoot();
+  if (!fs.existsSync(root)) return [];
+
+  const now = Date.now();
+  const removed = [];
+  for (const uploadId of fs.readdirSync(root)) {
+    const dir = sessionDir(uploadId);
+    const stat = fs.statSync(dir);
+    if (!stat.isDirectory()) continue;
+    if (now - stat.mtimeMs > maxAgeMs) {
+      fs.rmSync(dir, { recursive: true, force: true });
+      removed.push(uploadId);
+    }
+  }
+  return removed;
+}
+
+module.exports = {
+  startOrGetSession, writeChunk, receivedChunks, assembleIfComplete, sweepAbandoned,
+  markCompleted, getCompletion
+};
