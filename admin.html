@@ -161,6 +161,39 @@
   .bulk-bar .bulk-delete-btn:disabled { opacity: 0.5; cursor: wait; }
   .bulk-bar .bulk-cancel-btn { background: rgba(255,255,255,0.15); color: #fff; }
   .bulk-bar .bulk-cancel-btn:hover { background: rgba(255,255,255,0.25); }
+
+  /* ── Tabs ── */
+  .tabbar {
+    max-width: 920px; margin: 0 auto 1.1rem;
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .tabs { display: flex; gap: 0.5rem; }
+  .tab-btn {
+    background: none; border: 1px solid rgba(180,134,76,0.35); border-radius: 8px;
+    font-family: 'Archivo', sans-serif; font-size: 0.74rem; font-weight: 600;
+    letter-spacing: 0.04em; color: var(--ink);
+    padding: 0.45rem 0.9rem; cursor: pointer;
+  }
+  .tab-btn:hover { background: rgba(180,134,76,0.1); }
+  .tab-btn.is-active { background: var(--ink-deep); color: #fff; border-color: var(--ink-deep); }
+
+  /* ── Data tables (RSVP / Alergias) ── */
+  .table-wrap {
+    max-width: 920px; margin: 0 auto 2rem;
+    background: var(--paper); border-radius: 14px;
+    border: 1px solid rgba(180,134,76,0.25);
+    box-shadow: 0 4px 10px rgba(31,51,71,0.08);
+    overflow-x: auto;
+  }
+  .data-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  .data-table th, .data-table td { padding: 0.65rem 0.9rem; text-align: left; vertical-align: top; }
+  .data-table th {
+    background: var(--ink-deep); color: #e7ceae;
+    text-transform: uppercase; font-size: 0.66rem; letter-spacing: 0.06em; font-weight: 600;
+  }
+  .data-table tbody tr:nth-child(even) { background: rgba(180,134,76,0.06); }
+  .data-table tbody tr:not(:last-child) td { border-bottom: 1px solid rgba(180,134,76,0.15); }
 </style>
 </head>
 <body>
@@ -178,17 +211,48 @@
   <div id="admin-app" hidden>
     <div class="head">
       <p class="eyebrow">Gloria &amp; José · Panel</p>
-      <h1>Administrar Galería</h1>
+      <h1 id="panel-title">Administrar Galería</h1>
       <p class="status-line" id="status-line">Cargando…</p>
     </div>
-    <div class="toolbar">
-      <div class="toolbar-left">
-        <button class="select-toggle" id="select-toggle" type="button">Seleccionar varios</button>
+
+    <div class="tabbar">
+      <div class="tabs" id="tabs" role="tablist">
+        <button class="tab-btn is-active" data-tab="galeria" type="button">Galería</button>
+        <button class="tab-btn" data-tab="rsvp" type="button">RSVP</button>
+        <button class="tab-btn" data-tab="alergias" type="button">Alergias</button>
       </div>
       <a class="logout-link" id="logout-link" href="#">Cerrar sesión</a>
     </div>
-    <div class="grid" id="grid"></div>
-    <p class="empty-state" id="empty-state" hidden>No hay fotos ni vídeos todavía.</p>
+
+    <div id="panel-galeria">
+      <div class="toolbar">
+        <div class="toolbar-left">
+          <button class="select-toggle" id="select-toggle" type="button">Seleccionar varios</button>
+        </div>
+      </div>
+      <div class="grid" id="grid"></div>
+      <p class="empty-state" id="empty-state" hidden>No hay fotos ni vídeos todavía.</p>
+    </div>
+
+    <div id="panel-rsvp" hidden>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Fecha</th><th>Nombre</th><th>Asiste</th><th>Acomp.</th><th>Nombres acompañantes</th></tr></thead>
+          <tbody id="rsvp-tbody"></tbody>
+        </table>
+      </div>
+      <p class="empty-state" id="rsvp-empty" hidden></p>
+    </div>
+
+    <div id="panel-alergias" hidden>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Fecha</th><th>Persona</th><th>Tipos</th><th>Detalle</th></tr></thead>
+          <tbody id="alergias-tbody"></tbody>
+        </table>
+      </div>
+      <p class="empty-state" id="alergias-empty" hidden></p>
+    </div>
   </div>
 
   <div class="bulk-bar" id="bulk-bar" hidden>
@@ -203,12 +267,16 @@
     // Borrado: webhook nuevo, protegido con Basic Auth en n8n. Reenvía a
     // media-service -> DELETE /items/:id.
     const DELETE_WEBHOOK_URL = 'https://n8n.ivangonzalez.cloud/webhook/boda-gj-borrar';
+    // RSVP + alergias: mismo panel, mismo login. El webhook GET devuelve JSON
+    // (no ya el dashboard HTML que generaba antes n8n directamente).
+    const FORM_DATA_URL = 'https://n8n.ivangonzalez.cloud/webhook/boda-admin';
     const AUTH_KEY = 'bodaAdminAuth';
 
     const loginCard = document.getElementById('login-card');
     const adminApp = document.getElementById('admin-app');
     const loginError = document.getElementById('login-error');
     const statusLine = document.getElementById('status-line');
+    const panelTitle = document.getElementById('panel-title');
     const grid = document.getElementById('grid');
     const emptyState = document.getElementById('empty-state');
     const selectToggle = document.getElementById('select-toggle');
@@ -216,10 +284,26 @@
     const bulkCount = document.getElementById('bulk-count');
     const bulkDeleteBtn = document.getElementById('bulk-delete-btn');
     const bulkCancelBtn = document.getElementById('bulk-cancel-btn');
+    const tabs = document.getElementById('tabs');
+    const panels = {
+      galeria: document.getElementById('panel-galeria'),
+      rsvp: document.getElementById('panel-rsvp'),
+      alergias: document.getElementById('panel-alergias')
+    };
+    const panelTitles = {
+      galeria: 'Administrar Galería',
+      rsvp: 'Confirmaciones de asistencia',
+      alergias: 'Alergias e intolerancias'
+    };
+    const rsvpTbody = document.getElementById('rsvp-tbody');
+    const rsvpEmpty = document.getElementById('rsvp-empty');
+    const alergiasTbody = document.getElementById('alergias-tbody');
+    const alergiasEmpty = document.getElementById('alergias-empty');
 
     let selectMode = false;
     const selectedIds = new Set();
     let itemsById = new Map();
+    let formDataLoaded = false;
 
     function uploadTimestamp(id) {
       const match = /^(\d+)_/.exec(id || '');
@@ -321,6 +405,68 @@
 
       updateBulkBar();
     }
+
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    function renderRsvp(rows, error) {
+      rsvpTbody.innerHTML = rows.map((r) => `
+        <tr>
+          <td>${escapeHtml(r.timestamp || '')}</td>
+          <td>${escapeHtml(r.nombre || '')}</td>
+          <td>${r.asiste ? 'Sí' : 'No'}</td>
+          <td>${escapeHtml(r.acompanantes ?? 0)}</td>
+          <td>${escapeHtml((r.nombres_acompanantes || []).join(', '))}</td>
+        </tr>`).join('');
+      rsvpEmpty.hidden = rows.length > 0;
+      rsvpEmpty.textContent = error ? `No se pudo leer las confirmaciones (${error}).` : 'Sin confirmaciones todavía.';
+    }
+
+    function renderAlergias(rows, error) {
+      alergiasTbody.innerHTML = rows.map((a) => `
+        <tr>
+          <td>${escapeHtml(a.timestamp || '')}</td>
+          <td>${escapeHtml(a.nombre_persona || '')}</td>
+          <td>${escapeHtml((a.tipos || []).join(', '))}</td>
+          <td>${escapeHtml(a.detalle || '')}</td>
+        </tr>`).join('');
+      alergiasEmpty.hidden = rows.length > 0;
+      alergiasEmpty.textContent = error ? `No se pudo leer los avisos (${error}).` : 'Sin avisos todavía.';
+    }
+
+    async function loadFormData() {
+      if (formDataLoaded) return;
+      try {
+        const res = await fetch(FORM_DATA_URL, {
+          headers: { Authorization: getAuthHeader() },
+          signal: AbortSignal.timeout(15000)
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        renderRsvp(Array.isArray(data.rsvp) ? data.rsvp : [], data.rsvpError);
+        renderAlergias(Array.isArray(data.alergias) ? data.alergias : [], data.alergiasError);
+        formDataLoaded = true;
+      } catch (err) {
+        rsvpEmpty.hidden = false;
+        rsvpEmpty.textContent = 'Error al cargar. Reintenta recargando la página.';
+        alergiasEmpty.hidden = false;
+        alergiasEmpty.textContent = 'Error al cargar. Reintenta recargando la página.';
+      }
+    }
+
+    function setActiveTab(tab) {
+      Object.keys(panels).forEach((key) => { panels[key].hidden = key !== tab; });
+      tabs.querySelectorAll('.tab-btn').forEach((btn) => btn.classList.toggle('is-active', btn.dataset.tab === tab));
+      panelTitle.textContent = panelTitles[tab];
+      statusLine.hidden = tab !== 'galeria';
+      if (tab !== 'galeria') loadFormData();
+    }
+
+    tabs.addEventListener('click', (e) => {
+      const btn = e.target.closest('.tab-btn');
+      if (btn) setActiveTab(btn.dataset.tab);
+    });
 
     function setSelectMode(on) {
       selectMode = on;
@@ -447,6 +593,8 @@
       e.preventDefault();
       sessionStorage.removeItem(AUTH_KEY);
       setSelectMode(false);
+      setActiveTab('galeria');
+      formDataLoaded = false;
       adminApp.hidden = true;
       loginCard.hidden = false;
       document.getElementById('login-pass').value = '';

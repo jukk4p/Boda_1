@@ -227,10 +227,10 @@
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "function readNodeText(nodeName) {\n  const item = $(nodeName).first();\n  if (!item) return { text: '', error: 'nodo no ejecutado' };\n  if (item.json && item.json.error) return { text: '', error: String(item.json.error) };\n  if (!item.binary || !item.binary.data) return { text: '', error: null };\n  try {\n    return { text: Buffer.from(item.binary.data.data, 'base64').toString('utf-8'), error: null };\n  } catch (e) {\n    return { text: '', error: e.message };\n  }\n}\n\nfunction parseJsonl(text) {\n  return text.split('\\n').map(l => l.trim()).filter(Boolean).map(l => {\n    try { return JSON.parse(l); } catch (e) { return null; }\n  }).filter(Boolean);\n}\n\nfunction escapeHtml(str) {\n  return String(str).replace(/[&<>\"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',\"'\":'&#39;'}[c]));\n}\n\nconst rsvpRead = readNodeText('Leer RSVP');\nconst alergenosRead = readNodeText('Leer Alergias');\nconst rsvp = parseJsonl(rsvpRead.text);\nconst alergenos = parseJsonl(alergenosRead.text);\n\nconst rsvpRows = rsvp.map(r => `\n  <tr>\n    <td>${escapeHtml(r.timestamp || '')}</td>\n    <td>${escapeHtml(r.nombre || '')}</td>\n    <td>${r.asiste ? 'Sí' : 'No'}</td>\n    <td>${escapeHtml(r.acompanantes ?? 0)}</td>\n    <td>${escapeHtml((r.nombres_acompanantes || []).join(', '))}</td>\n  </tr>`).join('');\n\nconst alergenosRows = alergenos.map(a => `\n  <tr>\n    <td>${escapeHtml(a.timestamp || '')}</td>\n    <td>${escapeHtml(a.nombre_persona || '')}</td>\n    <td>${escapeHtml((a.tipos || []).join(', '))}</td>\n    <td>${escapeHtml(a.detalle || '')}</td>\n  </tr>`).join('');\n\nconst rsvpEmptyMessage = rsvpRead.error ? ('No se pudo leer boda-rsvp.jsonl (' + escapeHtml(rsvpRead.error) + ').') : 'Sin confirmaciones todavía.';\nconst alergenosEmptyMessage = alergenosRead.error ? ('No se pudo leer boda-alergenos.jsonl (' + escapeHtml(alergenosRead.error) + ').') : 'Sin avisos todavía.';\n\nconst html = `<!DOCTYPE html>\n<html lang=\"es\">\n<head>\n<meta charset=\"UTF-8\">\n<title>Dashboard · Boda Gloria y José</title>\n<style>\n  body { font-family: Arial, sans-serif; background: #ebe6da; color: #231f1a; padding: 2rem; }\n  h1 { font-family: Georgia, serif; color: #1a382b; }\n  h2 { color: #9e773b; margin-top: 2.5rem; }\n  table { width: 100%; border-collapse: collapse; background: #fbf9f4; border-radius: 10px; overflow: hidden; }\n  th, td { padding: 0.6rem 0.9rem; border-bottom: 1px solid rgba(201,160,99,0.35); text-align: left; font-size: 0.9rem; }\n  th { background: #1a382b; color: #e2c290; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; }\n  tr:last-child td { border-bottom: none; }\n</style>\n</head>\n<body>\n  <h1>Gloria &amp; José — Dashboard</h1>\n\n  <h2>Confirmaciones de asistencia (${rsvp.length})</h2>\n  <table>\n    <thead><tr><th>Fecha</th><th>Nombre</th><th>Asiste</th><th>Acompañantes</th><th>Nombres acompañantes</th></tr></thead>\n    <tbody>${rsvpRows || '<tr><td colspan=\"5\">' + rsvpEmptyMessage + '</td></tr>'}</tbody>\n  </table>\n\n  <h2>Alergias e intolerancias (${alergenos.length})</h2>\n  <table>\n    <thead><tr><th>Fecha</th><th>Persona</th><th>Tipos</th><th>Detalle</th></tr></thead>\n    <tbody>${alergenosRows || '<tr><td colspan=\"4\">' + alergenosEmptyMessage + '</td></tr>'}</tbody>\n  </table>\n</body>\n</html>`;\n\nreturn [{ json: { html } }];"
+        "jsCode": "function readNodeText(nodeName) {\n  const item = $(nodeName).first();\n  if (!item) return { text: '', error: 'nodo no ejecutado' };\n  if (item.json && item.json.error) return { text: '', error: String(item.json.error) };\n  if (!item.binary || !item.binary.data) return { text: '', error: null };\n  try {\n    return { text: Buffer.from(item.binary.data.data, 'base64').toString('utf-8'), error: null };\n  } catch (e) {\n    return { text: '', error: e.message };\n  }\n}\n\nfunction parseJsonl(text) {\n  return text.split('\\n').map(l => l.trim()).filter(Boolean).map(l => {\n    try { return JSON.parse(l); } catch (e) { return null; }\n  }).filter(Boolean);\n}\n\nconst rsvpRead = readNodeText('Leer RSVP');\nconst alergiasRead = readNodeText('Leer Alergias');\n\nreturn [{\n  json: {\n    rsvp: parseJsonl(rsvpRead.text),\n    alergias: parseJsonl(alergiasRead.text),\n    rsvpError: rsvpRead.error,\n    alergiasError: alergiasRead.error\n  }\n}];"
       },
       "id": "a1b2c3d4-0003-4000-8000-000000000004",
-      "name": "Generar Dashboard HTML",
+      "name": "Generar Dashboard JSON",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -240,18 +240,9 @@
     },
     {
       "parameters": {
-        "respondWith": "text",
-        "responseBody": "={{ $json.html }}",
-        "options": {
-          "responseHeaders": {
-            "entries": [
-              {
-                "name": "Content-Type",
-                "value": "text/html; charset=utf-8"
-              }
-            ]
-          }
-        }
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
       },
       "id": "a1b2c3d4-0003-4000-8000-000000000005",
       "name": "Responder Admin",
@@ -378,14 +369,14 @@
       "main": [
         [
           {
-            "node": "Generar Dashboard HTML",
+            "node": "Generar Dashboard JSON",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Generar Dashboard HTML": {
+    "Generar Dashboard JSON": {
       "main": [
         [
           {
