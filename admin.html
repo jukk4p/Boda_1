@@ -57,9 +57,9 @@
   }
   .login-card p { font-size: 0.85rem; color: var(--muted); margin: 0.4rem 0 1.2rem; line-height: 1.5; }
   .login-card input {
-    width: 100%; padding: 0.65rem 0.8rem; margin-bottom: 0.7rem;
+    width: 100%; padding: 0.7rem 0.8rem; margin-bottom: 0.7rem;
     border: 1px solid var(--mist); border-radius: 10px;
-    font-family: 'Archivo', sans-serif; font-size: 0.9rem;
+    font-family: 'Archivo', sans-serif; font-size: 1rem;
     background: #fff; color: var(--charcoal);
   }
   .login-card input:focus { outline: 2px solid var(--gold); outline-offset: 1px; }
@@ -86,12 +86,14 @@
     background: none; border: 1px solid rgba(180,134,76,0.4); border-radius: 8px;
     font-family: 'Archivo', sans-serif; font-size: 0.72rem; font-weight: 600;
     letter-spacing: 0.04em; color: var(--ink);
-    padding: 0.4rem 0.8rem; cursor: pointer;
+    padding: 0.55rem 0.9rem; min-height: 2.4rem; cursor: pointer;
   }
   .select-toggle:hover { background: rgba(180,134,76,0.1); }
   .select-toggle.is-active { background: var(--ink-deep); color: #fff; border-color: var(--ink-deep); }
   .logout-link {
-    font-size: 0.72rem; color: var(--gold-text); text-decoration: none;
+    display: inline-flex; align-items: center;
+    padding: 0.5rem 0.2rem; min-height: 2.4rem;
+    font-size: 0.74rem; color: var(--gold-text); text-decoration: none;
     border-bottom: 1px solid transparent;
   }
   .logout-link:hover { border-color: var(--gold-text); }
@@ -108,18 +110,18 @@
   }
   .tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .tile .del-btn {
-    position: absolute; top: 6px; right: 6px;
-    width: 28px; height: 28px; border-radius: 50%;
+    position: absolute; top: 4px; right: 4px;
+    width: 34px; height: 34px; border-radius: 50%;
     background: rgba(31,51,71,0.75); color: #fff; border: none;
-    font-size: 0.95rem; line-height: 1; cursor: pointer;
+    font-size: 1rem; line-height: 1; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
     transition: background 0.15s ease, transform 0.15s ease;
   }
   .tile .del-btn:hover { background: var(--danger); transform: scale(1.06); }
   .tile .del-btn:disabled { opacity: 0.5; cursor: wait; }
   .tile .select-box {
-    position: absolute; top: 6px; left: 6px;
-    width: 24px; height: 24px; border-radius: 50%;
+    position: absolute; top: 4px; left: 4px;
+    width: 30px; height: 30px; border-radius: 50%;
     background: rgba(31,51,71,0.55); border: 2px solid rgba(255,255,255,0.85);
     cursor: pointer; display: none;
     align-items: center; justify-content: center;
@@ -146,15 +148,16 @@
   .bulk-bar {
     position: fixed; left: 0; right: 0; bottom: 0;
     background: var(--ink-deep); color: #fff;
-    padding: 0.9rem 1.5rem;
+    padding: 0.9rem 1.5rem calc(0.9rem + env(safe-area-inset-bottom));
     display: flex; align-items: center; justify-content: center; gap: 1.2rem;
+    flex-wrap: wrap;
     box-shadow: 0 -6px 18px rgba(31,51,71,0.25);
   }
   .bulk-bar span { font-size: 0.85rem; }
   .bulk-bar button {
     font-family: 'Archivo', sans-serif; font-size: 0.75rem; font-weight: 600;
     letter-spacing: 0.06em; text-transform: uppercase;
-    border-radius: 8px; padding: 0.55rem 1rem; cursor: pointer; border: none;
+    border-radius: 8px; padding: 0.65rem 1.1rem; min-height: 2.4rem; cursor: pointer; border: none;
   }
   .bulk-bar .bulk-delete-btn { background: var(--danger); color: #fff; }
   .bulk-bar .bulk-delete-btn:hover { background: #8c352f; }
@@ -164,16 +167,19 @@
 
   /* ── Tabs ── */
   .tabbar {
+    position: sticky; top: 0; z-index: 10;
     max-width: 920px; margin: 0 auto 1.1rem;
+    background: var(--page);
+    padding: 0.6rem 0; margin-top: -0.6rem;
     display: flex; align-items: center; justify-content: space-between; gap: 1rem;
     flex-wrap: wrap;
   }
-  .tabs { display: flex; gap: 0.5rem; }
+  .tabs { display: flex; gap: 0.5rem; flex: 1 1 auto; min-width: 0; }
   .tab-btn {
     background: none; border: 1px solid rgba(180,134,76,0.35); border-radius: 8px;
     font-family: 'Archivo', sans-serif; font-size: 0.74rem; font-weight: 600;
     letter-spacing: 0.04em; color: var(--ink);
-    padding: 0.45rem 0.9rem; cursor: pointer;
+    padding: 0.55rem 0.9rem; min-height: 2.4rem; cursor: pointer;
   }
   .tab-btn:hover { background: rgba(180,134,76,0.1); }
   .tab-btn.is-active { background: var(--ink-deep); color: #fff; border-color: var(--ink-deep); }
@@ -253,9 +259,9 @@
   }
   .record-edit-form input[type="text"],
   .record-edit-form input[type="number"] {
-    font-family: 'Archivo', sans-serif; font-size: 0.86rem; color: var(--charcoal);
+    font-family: 'Archivo', sans-serif; font-size: 1rem; color: var(--charcoal);
     border: 1px solid var(--mist); border-radius: 8px;
-    padding: 0.55rem 0.65rem; background: #fff;
+    padding: 0.6rem 0.65rem; background: #fff;
   }
   .record-edit-form input:focus { outline: 2px solid var(--gold); outline-offset: 1px; }
   .record-edit-form .check-row {
@@ -267,6 +273,10 @@
   @media (max-width: 480px) {
     body { padding: 1rem; }
     .record-grid { grid-template-columns: 1fr; }
+    .tabbar { margin: 0 -1rem 1rem; padding: 0.6rem 1rem; }
+    .tabs { flex: 1 1 100%; }
+    .tab-btn { flex: 1; text-align: center; }
+    .logout-link { margin-left: auto; }
   }
 </style>
 </head>
