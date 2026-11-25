@@ -20,7 +20,7 @@
     --mist:       #dbe1de;
     --danger:     #a6413a;
   }
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   [hidden] { display: none !important; }
   body {
     font-family: 'Archivo', sans-serif;
@@ -30,6 +30,7 @@
     -webkit-font-smoothing: antialiased;
     padding: 1.5rem;
   }
+  button { touch-action: manipulation; }
   h1 {
     font-family: 'Fraunces', serif;
     font-weight: 500;
@@ -72,7 +73,8 @@
     padding: 0.7rem 1rem; border-radius: 10px;
     cursor: pointer;
   }
-  .btn:hover { background: var(--ink); }
+  .btn:hover, .btn:active { background: var(--ink); }
+  .btn:active { transform: scale(0.98); }
   .login-error { color: var(--danger); font-size: 0.8rem; margin-top: 0.6rem; }
 
   /* ── Grid ── */
@@ -88,7 +90,7 @@
     letter-spacing: 0.04em; color: var(--ink);
     padding: 0.55rem 0.9rem; min-height: 2.4rem; cursor: pointer;
   }
-  .select-toggle:hover { background: rgba(180,134,76,0.1); }
+  .select-toggle:hover, .select-toggle:active { background: rgba(180,134,76,0.1); }
   .select-toggle.is-active { background: var(--ink-deep); color: #fff; border-color: var(--ink-deep); }
   .logout-link {
     display: inline-flex; align-items: center;
@@ -96,7 +98,7 @@
     font-size: 0.74rem; color: var(--gold-text); text-decoration: none;
     border-bottom: 1px solid transparent;
   }
-  .logout-link:hover { border-color: var(--gold-text); }
+  .logout-link:hover, .logout-link:active { border-color: var(--gold-text); }
   .grid {
     max-width: 920px; margin: 0 auto 5.5rem;
     display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
@@ -117,7 +119,7 @@
     display: flex; align-items: center; justify-content: center;
     transition: background 0.15s ease, transform 0.15s ease;
   }
-  .tile .del-btn:hover { background: var(--danger); transform: scale(1.06); }
+  .tile .del-btn:hover, .tile .del-btn:active { background: var(--danger); transform: scale(1.06); }
   .tile .del-btn:disabled { opacity: 0.5; cursor: wait; }
   .tile .select-box {
     position: absolute; top: 4px; left: 4px;
@@ -160,10 +162,10 @@
     border-radius: 8px; padding: 0.65rem 1.1rem; min-height: 2.4rem; cursor: pointer; border: none;
   }
   .bulk-bar .bulk-delete-btn { background: var(--danger); color: #fff; }
-  .bulk-bar .bulk-delete-btn:hover { background: #8c352f; }
+  .bulk-bar .bulk-delete-btn:hover, .bulk-bar .bulk-delete-btn:active { background: #8c352f; }
   .bulk-bar .bulk-delete-btn:disabled { opacity: 0.5; cursor: wait; }
   .bulk-bar .bulk-cancel-btn { background: rgba(255,255,255,0.15); color: #fff; }
-  .bulk-bar .bulk-cancel-btn:hover { background: rgba(255,255,255,0.25); }
+  .bulk-bar .bulk-cancel-btn:hover, .bulk-bar .bulk-cancel-btn:active { background: rgba(255,255,255,0.25); }
 
   /* ── Tabs ── */
   .tabbar {
@@ -181,7 +183,7 @@
     letter-spacing: 0.04em; color: var(--ink);
     padding: 0.55rem 0.9rem; min-height: 2.4rem; cursor: pointer;
   }
-  .tab-btn:hover { background: rgba(180,134,76,0.1); }
+  .tab-btn:hover, .tab-btn:active { background: rgba(180,134,76,0.1); }
   .tab-btn.is-active { background: var(--ink-deep); color: #fff; border-color: var(--ink-deep); }
 
   /* ── Data tables (RSVP / Alergias) ── */
@@ -242,13 +244,13 @@
     padding: 0.55rem 0.7rem; min-height: 2.4rem;
   }
   .record-edit-btn { background: rgba(47,74,99,0.1); color: var(--ink-deep); }
-  .record-edit-btn:hover { background: rgba(47,74,99,0.18); }
+  .record-edit-btn:hover, .record-edit-btn:active { background: rgba(47,74,99,0.18); }
   .record-delete-btn { background: rgba(166,65,58,0.1); color: var(--danger); }
-  .record-delete-btn:hover { background: rgba(166,65,58,0.18); }
+  .record-delete-btn:hover, .record-delete-btn:active { background: rgba(166,65,58,0.18); }
   .record-save-btn { background: var(--ink-deep); color: #fff; }
-  .record-save-btn:hover { background: var(--ink); }
+  .record-save-btn:hover, .record-save-btn:active { background: var(--ink); }
   .record-cancel-btn { background: rgba(43,42,39,0.08); color: var(--charcoal); }
-  .record-cancel-btn:hover { background: rgba(43,42,39,0.14); }
+  .record-cancel-btn:hover, .record-cancel-btn:active { background: rgba(43,42,39,0.14); }
   .record-actions button:disabled { opacity: 0.55; cursor: wait; }
 
   .record-edit-form { display: flex; flex-direction: column; gap: 0.55rem; }
@@ -272,11 +274,17 @@
 
   @media (max-width: 480px) {
     body { padding: 1rem; }
-    .record-grid { grid-template-columns: 1fr; }
+    .record-grid { grid-template-columns: 1fr; gap: 0.7rem; margin-bottom: 1.4rem; }
     .tabbar { margin: 0 -1rem 1rem; padding: 0.6rem 1rem; }
     .tabs { flex: 1 1 100%; }
     .tab-btn { flex: 1; text-align: center; }
     .logout-link { margin-left: auto; }
+    .stat-row { grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-bottom: 1rem; }
+    .stat-card { padding: 0.6rem 0.5rem; text-align: center; }
+    .stat-card .stat-value { font-size: 1.25rem; }
+    .stat-card .stat-label { font-size: 0.62rem; }
+    .eyebrow { font-size: 0.7rem; }
+    .record-meta { font-size: 0.78rem; }
   }
 </style>
 </head>
